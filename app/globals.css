@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #ff385c;
+  --color-brand-dark: #e00b41;
+  --color-brand-light: #ff5a7a;
+
+  --color-ink: #222222;
+  --color-muted: #717171;
+  --color-line: #ebebeb;
+  --color-surface: #ffffff;
+  --color-canvas: #ffffff;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+
+  --shadow-card: 0 6px 16px rgba(0, 0, 0, 0.12);
+  --shadow-float: 0 2px 16px rgba(0, 0, 0, 0.1);
+  --shadow-pop: 0 3px 12px rgba(0, 0, 0, 0.18);
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #222222;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hide scrollbars on horizontal scrollers (category row) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* react-day-picker theming */
+.rdp-root {
+  --rdp-accent-color: var(--color-brand);
+  --rdp-accent-background-color: #fff0f3;
+  --rdp-day-width: 2.6rem;
+  --rdp-day-height: 2.6rem;
+  --rdp-day_button-width: 2.6rem;
+  --rdp-day_button-height: 2.6rem;
+  --rdp-day_button-border-radius: 100%;
+  --rdp-selected-border: 2px solid var(--color-brand);
+  margin: 0;
+}
+.rdp-day_button:hover {
+  background-color: #f3f3f3;
+}
+.rdp-range_middle {
+  background-color: #fff0f3;
+}
+.rdp-range_start .rdp-day_button,
+.rdp-range_end .rdp-day_button {
+  background-color: var(--color-brand);
+  color: #fff;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.25s ease-out;
+}
