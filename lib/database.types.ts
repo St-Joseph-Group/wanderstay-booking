@@ -21,6 +21,8 @@ export type Database = {
           listing_id: string;
           nightly_total: number;
           nights: number;
+          room_instance_id: string | null;
+          room_type_id: string | null;
           service_fee: number;
           status: Database["public"]["Enums"]["booking_status"];
           total_price: number;
@@ -36,11 +38,53 @@ export type Database = {
           listing_id: string;
           nightly_total: number;
           nights: number;
+          room_instance_id?: string | null;
+          room_type_id?: string | null;
           service_fee?: number;
           status?: Database["public"]["Enums"]["booking_status"];
           total_price: number;
         };
         Update: Partial<Database["public"]["Tables"]["bookings"]["Insert"]>;
+        Relationships: [];
+      };
+      room_types: {
+        Row: {
+          id: string;
+          listing_id: string;
+          name: string;
+          description: string;
+          price_per_night: number;
+          cleaning_fee: number;
+          max_guests: number;
+          beds: number;
+          bathrooms: number;
+          size_sqm: number | null;
+          amenities: string[];
+          position: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          listing_id: string;
+          name: string;
+          description?: string;
+          price_per_night: number;
+          cleaning_fee?: number;
+          max_guests?: number;
+          beds?: number;
+          bathrooms?: number;
+          size_sqm?: number | null;
+          amenities?: string[];
+          position?: number;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["room_types"]["Insert"]>;
+        Relationships: [];
+      };
+      room_instances: {
+        Row: { id: string; room_type_id: string; label: string };
+        Insert: { id?: string; room_type_id: string; label?: string };
+        Update: Partial<Database["public"]["Tables"]["room_instances"]["Insert"]>;
         Relationships: [];
       };
       favorites: {
@@ -152,6 +196,28 @@ export type Database = {
         Args: { p_check_in: string; p_check_out: string; p_listing_id: string };
         Returns: boolean;
       };
+      room_type_availability: {
+        Args: {
+          p_room_type_id: string;
+          p_check_in: string;
+          p_check_out: string;
+        };
+        Returns: number;
+      };
+      book_room_instance: {
+        Args: {
+          p_room_type_id: string;
+          p_check_in: string;
+          p_check_out: string;
+          p_guests: number;
+          p_nights: number;
+          p_nightly_total: number;
+          p_cleaning_fee: number;
+          p_service_fee: number;
+          p_total: number;
+        };
+        Returns: string;
+      };
     };
     Enums: {
       booking_status: "pending" | "confirmed" | "cancelled";
@@ -181,5 +247,7 @@ export type Booking = Tables<"bookings">;
 export type Profile = Tables<"profiles">;
 export type Review = Tables<"reviews">;
 export type Favorite = Tables<"favorites">;
+export type RoomType = Tables<"room_types">;
+export type RoomInstance = Tables<"room_instances">;
 export type PropertyType = Enums<"property_type">;
 export type BookingStatus = Enums<"booking_status">;
