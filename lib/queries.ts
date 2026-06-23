@@ -94,6 +94,7 @@ export type BookingWithListing = {
   total_price: number;
   status: "pending" | "confirmed" | "cancelled";
   created_at: string;
+  roomTypeName: string | null;
   listing: {
     id: string;
     title: string;
@@ -105,7 +106,7 @@ export type BookingWithListing = {
 };
 
 const BOOKING_SELECT =
-  "id, check_in, check_out, guests, nights, nightly_total, cleaning_fee, service_fee, total_price, status, created_at, listing:listings(id, title, city, country, price_per_night, listing_photos(url, position))";
+  "id, check_in, check_out, guests, nights, nightly_total, cleaning_fee, service_fee, total_price, status, created_at, room_type:room_types(name), listing:listings(id, title, city, country, price_per_night, listing_photos(url, position))";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toBooking(row: any): BookingWithListing {
@@ -115,6 +116,7 @@ function toBooking(row: any): BookingWithListing {
       ?.url ?? null;
   return {
     ...row,
+    roomTypeName: row.room_type?.name ?? null,
     listing: l
       ? {
           id: l.id,
@@ -287,6 +289,23 @@ export async function getWishlist(): Promise<ListingCardData[]> {
     .map(toCard);
 }
 
+export type RoomTypeDetail = {
+  id: string;
+  name: string;
+  description: string;
+  price_per_night: number;
+  cleaning_fee: number;
+  max_guests: number;
+  beds: number;
+  bathrooms: number;
+  size_sqm: number | null;
+  amenities: string[];
+  position: number;
+  serviceFeePct: number; // inherited from the parent listing
+  totalInstances: number; // inventory
+  bookings: { room_instance_id: string; check_in: string; check_out: string }[];
+};
+
 export type ListingDetail = ListingCardData & {
   host: { id: string; full_name: string | null; avatar_url: string | null; bio: string | null; created_at: string };
   reviewsFull: {
@@ -296,7 +315,7 @@ export type ListingDetail = ListingCardData & {
     created_at: string;
     author: { full_name: string | null; avatar_url: string | null } | null;
   }[];
-  bookedRanges: { check_in: string; check_out: string }[];
+  roomTypes: RoomTypeDetail[];
 };
 
 export async function getListingById(
@@ -319,6 +338,7 @@ export async function getListingById(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const row = data as any;
   const card = toCard(row);
+  const serviceFeePct = row.service_fee_pct as number;
 
   const { data: reviewsFull } = await supabase
     .from("reviews")
@@ -326,17 +346,60 @@ export async function getListingById(
     .eq("listing_id", id)
     .order("created_at", { ascending: false });
 
-  const { data: bookings } = await supabase
+  // Room types + their physical instances (inventory)
+  const { data: rts } = await supabase
+    .from("room_types")
+    .select(
+      "id, name, description, price_per_night, cleaning_fee, max_guests, beds, bathrooms, size_sqm, amenities, position, room_instances(id)"
+    )
+    .eq("listing_id", id)
+    .order("position", { ascending: true });
+
+  // Active bookings on this listing, grouped to each room type for availability math
+  const { data: bks } = await supabase
     .from("bookings")
-    .select("check_in, check_out")
+    .select("room_type_id, room_instance_id, check_in, check_out")
     .eq("listing_id", id)
     .neq("status", "cancelled");
+
+  const bookingsByType = new Map<
+    string,
+    { room_instance_id: string; check_in: string; check_out: string }[]
+  >();
+  for (const b of bks ?? []) {
+    if (!b.room_type_id || !b.room_instance_id) continue;
+    const arr = bookingsByType.get(b.room_type_id) ?? [];
+    arr.push({
+      room_instance_id: b.room_instance_id,
+      check_in: b.check_in,
+      check_out: b.check_out,
+    });
+    bookingsByType.set(b.room_type_id, arr);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const roomTypes: RoomTypeDetail[] = ((rts as any[]) ?? []).map((rt) => ({
+    id: rt.id,
+    name: rt.name,
+    description: rt.description,
+    price_per_night: rt.price_per_night,
+    cleaning_fee: rt.cleaning_fee,
+    max_guests: rt.max_guests,
+    beds: rt.beds,
+    bathrooms: rt.bathrooms,
+    size_sqm: rt.size_sqm,
+    amenities: rt.amenities,
+    position: rt.position,
+    serviceFeePct,
+    totalInstances: rt.room_instances?.length ?? 0,
+    bookings: bookingsByType.get(rt.id) ?? [],
+  }));
 
   return {
     ...card,
     host: row.host,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     reviewsFull: (reviewsFull as any) ?? [],
-    bookedRanges: bookings ?? [],
+    roomTypes,
   };
 }

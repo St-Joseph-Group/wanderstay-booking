@@ -10,7 +10,7 @@ import { computePricing } from "@/lib/pricing";
 const UUID_SHAPE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const schema = z.object({
-  listingId: z.string().regex(UUID_SHAPE),
+  roomTypeId: z.string().regex(UUID_SHAPE),
   checkin: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   checkout: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   guests: z.coerce.number().int().min(1).max(50),
@@ -23,13 +23,13 @@ export async function createBooking(
   formData: FormData
 ): Promise<BookingState> {
   const parsed = schema.safeParse({
-    listingId: formData.get("listingId"),
+    roomTypeId: formData.get("roomTypeId"),
     checkin: formData.get("checkin"),
     checkout: formData.get("checkout"),
     guests: formData.get("guests"),
   });
   if (!parsed.success) return { error: "Invalid booking details." };
-  const { listingId, checkin, checkout, guests } = parsed.data;
+  const { roomTypeId, checkin, checkout, guests } = parsed.data;
 
   const ci = parseISO(checkin);
   const co = parseISO(checkout);
@@ -43,68 +43,69 @@ export async function createBooking(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Please log in to complete your booking." };
 
-  // Fetch listing (server-side source of truth for pricing & capacity)
-  const { data: listing, error: lErr } = await supabase
-    .from("listings")
+  // Room type is the server-side source of truth for pricing & capacity.
+  // service_fee_pct still lives on the parent listing.
+  const { data: rt, error: rErr } = await supabase
+    .from("room_types")
     .select(
-      "id, price_per_night, cleaning_fee, service_fee_pct, max_guests, status"
+      "id, listing_id, price_per_night, cleaning_fee, max_guests, listing:listings!room_types_listing_id_fkey(service_fee_pct, status)"
     )
-    .eq("id", listingId)
+    .eq("id", roomTypeId)
     .maybeSingle();
-  if (lErr || !listing || listing.status !== "published")
-    return { error: "This listing is no longer available." };
-  if (guests > listing.max_guests)
-    return { error: `This place holds up to ${listing.max_guests} guests.` };
-
-  // Availability check
-  const { data: available } = await supabase.rpc("is_listing_available", {
-    p_listing_id: listingId,
-    p_check_in: checkin,
-    p_check_out: checkout,
-  });
-  if (available === false)
-    return { error: "Sorry, those dates were just booked. Please pick others." };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const parentListing = (rt as any)?.listing;
+  if (rErr || !rt || parentListing?.status !== "published")
+    return { error: "This room is no longer available." };
+  if (guests > rt.max_guests)
+    return { error: `This room holds up to ${rt.max_guests} guests.` };
 
   const nights = differenceInCalendarDays(co, ci);
   const pricing = computePricing(
     {
-      pricePerNight: listing.price_per_night,
-      cleaningFee: listing.cleaning_fee,
-      serviceFeePct: listing.service_fee_pct,
+      pricePerNight: rt.price_per_night,
+      cleaningFee: rt.cleaning_fee,
+      serviceFeePct: parentListing.service_fee_pct,
     },
     ci,
     co
   );
 
-  const { data: booking, error: bErr } = await supabase
-    .from("bookings")
-    .insert({
-      listing_id: listingId,
-      guest_id: user.id,
-      check_in: checkin,
-      check_out: checkout,
-      guests,
-      nights,
-      nightly_total: pricing.nightlyTotal,
-      cleaning_fee: pricing.cleaningFee,
-      service_fee: pricing.serviceFee,
-      total_price: pricing.total,
-      status: "confirmed",
-    })
-    .select("id")
-    .single();
+  // book_room_instance atomically claims a free room (FOR UPDATE SKIP LOCKED)
+  // and inserts the booking; the instance exclusion constraint is the backstop.
+  const { data: bookingId, error: bErr } = await supabase.rpc(
+    "book_room_instance",
+    {
+      p_room_type_id: roomTypeId,
+      p_check_in: checkin,
+      p_check_out: checkout,
+      p_guests: guests,
+      p_nights: nights,
+      p_nightly_total: pricing.nightlyTotal,
+      p_cleaning_fee: pricing.cleaningFee,
+      p_service_fee: pricing.serviceFee,
+      p_total: pricing.total,
+    }
+  );
 
   if (bErr) {
-    // Exclusion constraint violation = race on overlapping dates
-    if (bErr.code === "23P01" || bErr.message.includes("bookings_no_overlap"))
-      return { error: "Those dates were just booked. Please pick others." };
-    console.error("createBooking error", bErr);
+    const m = bErr.message ?? "";
+    if (
+      m.includes("no_availability") ||
+      bErr.code === "23P01" ||
+      m.includes("bookings_no_overlap")
+    )
+      return { error: "Sorry, that room was just booked. Please pick other dates." };
+    if (m.includes("too_many_guests"))
+      return { error: `This room holds up to ${rt.max_guests} guests.` };
+    if (m.includes("unavailable"))
+      return { error: "This room is no longer available." };
+    console.error("book_room_instance error", bErr);
     return { error: "Could not complete your booking. Please try again." };
   }
 
   revalidatePath("/trips");
-  revalidatePath(`/listings/${listingId}`);
-  redirect(`/bookings/confirmation/${booking.id}`);
+  revalidatePath(`/listings/${rt.listing_id}`);
+  redirect(`/bookings/confirmation/${bookingId as string}`);
 }
 
 export async function cancelBooking(bookingId: string) {

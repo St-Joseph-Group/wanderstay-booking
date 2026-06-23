@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { format, parseISO } from "date-fns";
 import { Star, MapPin, Users, BedDouble, Bath, DoorOpen, Share, Heart } from "lucide-react";
 import { PhotoGallery } from "@/components/photo-gallery";
-import { BookingCard } from "@/components/booking-card";
+import { RoomSelection } from "@/components/room-selection";
 import { ListingMap } from "@/components/listing-map";
 import { Avatar } from "@/components/avatar";
 import { StarRating } from "@/components/star-rating";
@@ -138,18 +138,14 @@ export default async function ListingPage({
           </div>
         </div>
 
-        {/* Sticky booking card */}
+        {/* Sticky room selection */}
         <div className="lg:relative">
           <div className="lg:sticky lg:top-24">
-            <BookingCard
+            <RoomSelection
               listingId={listing.id}
-              pricePerNight={listing.price_per_night}
-              cleaningFee={listing.cleaning_fee}
-              serviceFeePct={listing.service_fee_pct}
-              maxGuests={listing.max_guests}
+              roomTypes={listing.roomTypes}
               rating={listing.rating}
               reviewCount={listing.reviewCount}
-              bookedRanges={listing.bookedRanges}
               isAuthed={!!session}
             />
           </div>

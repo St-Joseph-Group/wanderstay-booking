@@ -25,13 +25,13 @@ function PayButton({ total }: { total: number }) {
 }
 
 export function CheckoutForm({
-  listingId,
+  roomTypeId,
   checkin,
   checkout,
   guests,
   total,
 }: {
-  listingId: string;
+  roomTypeId: string;
   checkin: string;
   checkout: string;
   guests: number;
@@ -44,7 +44,7 @@ export function CheckoutForm({
 
   return (
     <form action={formAction} className="space-y-6">
-      <input type="hidden" name="listingId" value={listingId} />
+      <input type="hidden" name="roomTypeId" value={roomTypeId} />
       <input type="hidden" name="checkin" value={checkin} />
       <input type="hidden" name="checkout" value={checkout} />
       <input type="hidden" name="guests" value={guests} />

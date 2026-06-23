@@ -125,6 +125,29 @@ export async function createListing(
     );
   }
 
+  // Every listing has at least one bookable room type (the whole place).
+  // Phase 4 will let hosts add more room types directly.
+  const { data: rt } = await supabase
+    .from("room_types")
+    .insert({
+      listing_id: listing.id,
+      name: "Entire place",
+      description: d.description,
+      price_per_night: Math.round(d.price_per_night * 100),
+      cleaning_fee: Math.round((d.cleaning_fee ?? 0) * 100),
+      max_guests: d.max_guests,
+      beds: d.beds,
+      bathrooms: d.bathrooms,
+      amenities,
+    })
+    .select("id")
+    .single();
+  if (rt) {
+    await supabase
+      .from("room_instances")
+      .insert({ room_type_id: rt.id, label: "Room 1" });
+  }
+
   revalidatePath("/host");
   revalidatePath("/search");
   redirect("/host");
@@ -185,6 +208,22 @@ export async function updateListing(
       photos.map((url, i) => ({ listing_id: listingId, url, position: i }))
     );
   }
+
+  // Keep the default "Entire place" room type in sync with the listing-level
+  // price/capacity. Other room types (Phase 4) are edited on their own.
+  await supabase
+    .from("room_types")
+    .update({
+      description: d.description,
+      price_per_night: Math.round(d.price_per_night * 100),
+      cleaning_fee: Math.round((d.cleaning_fee ?? 0) * 100),
+      max_guests: d.max_guests,
+      beds: d.beds,
+      bathrooms: d.bathrooms,
+      amenities,
+    })
+    .eq("listing_id", listingId)
+    .eq("name", "Entire place");
 
   revalidatePath("/host");
   revalidatePath(`/listings/${listingId}`);
