@@ -1,15 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AMENITIES, PROPERTY_TYPES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
-export function SearchFilters() {
+export function SearchFilters({ query }: { query: string }) {
   const router = useRouter();
-  const params = useSearchParams();
+  const params = new URLSearchParams(query);
   const [open, setOpen] = React.useState(false);
 
   const [minPrice, setMinPrice] = React.useState(params.get("minPrice") ?? "");

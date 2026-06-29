@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
 import {
   Building2,
   Home,
@@ -26,17 +25,15 @@ const categories: { type: string; label: string; icon: LucideIcon }[] = [
   { type: "room", label: "Rooms", icon: BedDouble },
 ];
 
-export function CategoryRow() {
-  const params = useSearchParams();
-  const pathname = usePathname();
+export function CategoryRow({ query }: { query: string }) {
+  const params = new URLSearchParams(query);
   const active = params.get("type") ?? "";
 
   function hrefFor(type: string) {
-    const p = new URLSearchParams(params.toString());
+    const p = new URLSearchParams(query);
     if (type) p.set("type", type);
     else p.delete("type");
-    const base = pathname === "/" ? "/search" : pathname;
-    return `${base}?${p.toString()}`;
+    return `/search?${p.toString()}`;
   }
 
   return (

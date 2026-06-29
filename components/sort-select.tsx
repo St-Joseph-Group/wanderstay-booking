@@ -1,14 +1,14 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
-export function SortSelect() {
+export function SortSelect({ query }: { query: string }) {
   const router = useRouter();
-  const params = useSearchParams();
+  const params = new URLSearchParams(query);
   const current = params.get("sort") ?? "featured";
 
   function onChange(value: string) {
-    const p = new URLSearchParams(params.toString());
+    const p = new URLSearchParams(query);
     if (value === "featured") p.delete("sort");
     else p.set("sort", value);
     router.push(`/search?${p.toString()}`);

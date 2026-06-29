@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import Link from "next/link";
 import { SearchBar } from "@/components/search-bar";
 import { CategoryRow } from "@/components/category-row";
@@ -38,9 +37,7 @@ export default async function HomePage() {
 
       {/* Categories */}
       <section className="mx-auto max-w-7xl border-b border-neutral-100 px-4 sm:px-6 lg:px-8">
-        <Suspense fallback={<div className="h-16" />}>
-          <CategoryRow />
-        </Suspense>
+        <CategoryRow query="" />
       </section>
 
       {/* Featured listings */}
