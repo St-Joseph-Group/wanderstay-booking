@@ -9,7 +9,13 @@ import { cn } from "@/lib/utils";
 
 type Panel = "where" | "dates" | "who" | null;
 
-export function SearchBar({ variant = "hero" }: { variant?: "hero" | "compact" }) {
+export function SearchBar({
+  variant = "hero",
+  onNavigate,
+}: {
+  variant?: "hero" | "compact";
+  onNavigate?: () => void;
+}) {
   const router = useRouter();
   const ref = React.useRef<HTMLDivElement>(null);
   const [panel, setPanel] = React.useState<Panel>(null);
@@ -42,6 +48,7 @@ export function SearchBar({ variant = "hero" }: { variant?: "hero" | "compact" }
     if (guests > 1) params.set("guests", String(guests));
     setPanel(null);
     router.push(`/search?${params.toString()}`);
+    onNavigate?.();
   }
 
   const dateLabel = range?.from
