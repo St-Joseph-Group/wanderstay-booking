@@ -18,18 +18,18 @@ export default async function HomePage() {
   return (
     <div>
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-rose-50 to-white">
+      <section className="relative overflow-hidden border-b border-line bg-gradient-to-b from-accent-soft/60 to-canvas">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">
+          <div className="max-w-2xl">
+            <h1 className="text-4xl font-semibold tracking-tight text-ink sm:text-5xl">
               Find your next <span className="text-brand">favorite stay</span>
             </h1>
-            <p className="mt-4 text-lg text-muted">
+            <p className="mt-4 max-w-xl text-lg text-muted">
               Book unique apartments, villas, cabins and more from hosts around
               the world.
             </p>
           </div>
-          <div className="mt-8 flex justify-center">
+          <div className="mt-8 flex justify-start">
             <SearchBar />
           </div>
         </div>

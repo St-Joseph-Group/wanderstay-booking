@@ -1,28 +1,40 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand: #ff385c;
-  --color-brand-dark: #e00b41;
-  --color-brand-light: #ff5a7a;
+  /* Primary = deep navy / charcoal (repurposed "brand" so it cascades app-wide) */
+  --color-brand: #1c1f2a;
+  --color-brand-dark: #11141d;
+  --color-brand-light: #2b2f3a;
+
+  /* Accent = gold / champagne — badges, active chips, stars, saved heart */
+  --color-accent: #c8a96a;
+  --color-accent-dark: #ad8f53;
+  --color-accent-soft: #f1ead9;
 
   --color-ink: #222222;
-  --color-muted: #717171;
-  --color-line: #ebebeb;
+  --color-muted: #6f6f6f;
+  --color-line: #e6e4df;
   --color-surface: #ffffff;
-  --color-canvas: #ffffff;
+  --color-canvas: #f7f6f3;
 
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
 
-  --radius-xl: 1rem;
-  --radius-2xl: 1.25rem;
+  /* Tighter radii for a more structured, upscale feel */
+  --radius-sm: 0.1875rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.5rem;
+  --radius-2xl: 0.625rem;
+  --radius-3xl: 0.875rem;
 
-  --shadow-card: 0 6px 16px rgba(0, 0, 0, 0.12);
-  --shadow-float: 0 2px 16px rgba(0, 0, 0, 0.1);
-  --shadow-pop: 0 3px 12px rgba(0, 0, 0, 0.18);
+  --shadow-card: 0 1px 2px rgba(28, 31, 42, 0.06), 0 10px 26px rgba(28, 31, 42, 0.07);
+  --shadow-float: 0 2px 14px rgba(28, 31, 42, 0.1);
+  --shadow-pop: 0 6px 24px rgba(28, 31, 42, 0.14);
 }
 
 :root {
-  --background: #ffffff;
+  --background: #f7f6f3;
   --foreground: #222222;
 }
 
@@ -37,6 +49,14 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Serif headings everywhere — editorial / upscale tone */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
 /* Hide scrollbars on horizontal scrollers (category row) */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
@@ -49,7 +69,7 @@ body {
 /* react-day-picker theming */
 .rdp-root {
   --rdp-accent-color: var(--color-brand);
-  --rdp-accent-background-color: #fff0f3;
+  --rdp-accent-background-color: #eef0f4;
   --rdp-day-width: 2.6rem;
   --rdp-day-height: 2.6rem;
   --rdp-day_button-width: 2.6rem;
@@ -62,7 +82,7 @@ body {
   background-color: #f3f3f3;
 }
 .rdp-range_middle {
-  background-color: #fff0f3;
+  background-color: #eef0f4;
 }
 .rdp-range_start .rdp-day_button,
 .rdp-range_end .rdp-day_button {
@@ -82,4 +102,23 @@ body {
 }
 .animate-fade-in {
   animation: fade-in 0.25s ease-out;
+}
+
+/* Saved-to-wishlist heartbeat */
+@keyframes saved-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.35);
+  }
+  70% {
+    transform: scale(0.92);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.animate-saved-pop {
+  animation: saved-pop 0.4s ease-out;
 }
