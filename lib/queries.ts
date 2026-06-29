@@ -5,7 +5,19 @@ export type ListingCardData = Listing & {
   photos: string[];
   rating: number | null;
   reviewCount: number;
+  isSuperhost: boolean;
+  isVerifiedHost: boolean;
+  isBestValue: boolean;
+  priceAtSave?: number | null;
 };
+
+export type SortKey =
+  | "featured"
+  | "price_asc"
+  | "price_desc"
+  | "rating"
+  | "distance"
+  | "best_match";
 
 export type ListingFilters = {
   q?: string;
@@ -15,8 +27,48 @@ export type ListingFilters = {
   minPrice?: number; // dollars
   maxPrice?: number; // dollars
   amenities?: string[];
-  sort?: "featured" | "price_asc" | "price_desc";
+  entire?: boolean; // entire place (exclude private rooms)
+  sort?: SortKey;
 };
+
+// Rough city centroids for the "distance" sort + Plan-my-Trip. Lowercased keys.
+const CITY_CENTROIDS: Record<string, [number, number]> = {
+  bali: [-8.4095, 115.1889],
+  bangkok: [13.7563, 100.5018],
+  tokyo: [35.6762, 139.6503],
+  paris: [48.8566, 2.3522],
+  lisbon: [38.7223, -9.1393],
+  barcelona: [41.3851, 2.1734],
+  "new york": [40.7128, -74.006],
+  siargao: [9.8482, 126.0458],
+  quezon: [13.9347, 121.6324],
+  cebu: [10.3157, 123.8854],
+};
+
+function haversine(a: [number, number], b: [number, number]): number {
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const R = 6371;
+  const dLat = toRad(b[0] - a[0]);
+  const dLng = toRad(b[1] - a[1]);
+  const lat1 = toRad(a[0]);
+  const lat2 = toRad(b[0]);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+function bestMatchScore(c: ListingCardData): number {
+  const r = c.rating ?? 4.2;
+  const reviews = Math.min(c.reviewCount, 60);
+  return (
+    r * 20 +
+    reviews * 0.4 +
+    (c.isSuperhost ? 6 : 0) +
+    (c.isBestValue ? 4 : 0) +
+    (c.isVerifiedHost ? 2 : 0)
+  );
+}
 
 function aggregateRating(reviews: { rating: number }[] | null) {
   if (!reviews || reviews.length === 0)
@@ -34,16 +86,46 @@ function toCard(row: ListingRow): ListingCardData {
     .sort((a, b) => a.position - b.position)
     .map((p) => p.url);
   const { rating, reviewCount } = aggregateRating(row.reviews);
-  const { listing_photos: _lp, reviews: _r, ...listing } = row;
-  return { ...(listing as Listing), photos, rating, reviewCount };
+  const { listing_photos: _lp, reviews: _r, host, ...listing } = row;
+  return {
+    ...(listing as Listing),
+    photos,
+    rating,
+    reviewCount,
+    isSuperhost: host?.is_superhost ?? false,
+    isVerifiedHost: host?.is_verified ?? false,
+    isBestValue: false, // computed across the result set below
+  };
+}
+
+// Flag the cheapest, well-rated stays in each city as "Best Value".
+function markBestValue(cards: ListingCardData[]): void {
+  const byCity = new Map<string, number[]>();
+  for (const c of cards) {
+    const arr = byCity.get(c.city) ?? [];
+    arr.push(c.price_per_night);
+    byCity.set(c.city, arr);
+  }
+  const medianByCity = new Map<string, number>();
+  for (const [city, prices] of byCity) {
+    const sorted = prices.slice().sort((a, b) => a - b);
+    medianByCity.set(city, sorted[Math.floor(sorted.length / 2)]);
+  }
+  for (const c of cards) {
+    const median = medianByCity.get(c.city) ?? c.price_per_night;
+    c.isBestValue =
+      c.price_per_night <= median * 0.9 && (c.rating ?? 0) >= 4.5;
+  }
 }
 
 type ListingRow = Listing & {
   listing_photos: { url: string; position: number }[] | null;
   reviews: { rating: number }[] | null;
+  host: { is_superhost: boolean; is_verified: boolean } | null;
 };
 
-const SELECT = "*, listing_photos(url, position), reviews(rating)";
+const SELECT =
+  "*, listing_photos(url, position), reviews(rating), host:profiles!listings_host_id_fkey(is_superhost, is_verified)";
 
 export async function getListings(
   filters: ListingFilters = {}
@@ -61,6 +143,7 @@ export async function getListings(
   if (filters.maxPrice) query = query.lte("price_per_night", filters.maxPrice * 100);
   if (filters.amenities && filters.amenities.length)
     query = query.contains("amenities", filters.amenities);
+  if (filters.entire) query = query.neq("property_type", "room");
   if (filters.q) {
     const term = `%${filters.q}%`;
     query = query.or(
@@ -68,6 +151,7 @@ export async function getListings(
     );
   }
 
+  // DB-side ordering for what Postgres can do directly; JS sort for the rest.
   if (filters.sort === "price_asc")
     query = query.order("price_per_night", { ascending: true });
   else if (filters.sort === "price_desc")
@@ -79,7 +163,26 @@ export async function getListings(
     console.error("getListings error", error.message);
     return [];
   }
-  return (data ?? []).map(toCard);
+  const cards = (data ?? []).map(toCard);
+  markBestValue(cards);
+
+  // Heuristic / aggregate sorts Postgres can't order on directly.
+  const origin =
+    CITY_CENTROIDS[(filters.city ?? filters.q ?? "").trim().toLowerCase()];
+  if (filters.sort === "rating") {
+    cards.sort(
+      (a, b) => (b.rating ?? 0) - (a.rating ?? 0) || b.reviewCount - a.reviewCount
+    );
+  } else if (filters.sort === "best_match") {
+    cards.sort((a, b) => bestMatchScore(b) - bestMatchScore(a));
+  } else if (filters.sort === "distance" && origin) {
+    const dist = (c: ListingCardData) =>
+      c.lat != null && c.lng != null
+        ? haversine(origin, [c.lat, c.lng])
+        : Infinity;
+    cards.sort((a, b) => dist(a) - dist(b));
+  }
+  return cards;
 }
 
 export type BookingWithListing = {
@@ -279,14 +382,13 @@ export async function getWishlist(): Promise<ListingCardData[]> {
   const { data } = await supabase
     .from("favorites")
     .select(
-      "listing:listings(*, listing_photos(url, position), reviews(rating))"
+      "price_at_save, listing:listings(*, listing_photos(url, position), reviews(rating), host:profiles!listings_host_id_fkey(is_superhost, is_verified))"
     )
     .eq("user_id", user.id);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return ((data as any[]) ?? [])
-    .map((row) => row.listing)
-    .filter(Boolean)
-    .map(toCard);
+    .filter((row) => row.listing)
+    .map((row) => ({ ...toCard(row.listing), priceAtSave: row.price_at_save }));
 }
 
 export type RoomTypeDetail = {
@@ -307,14 +409,33 @@ export type RoomTypeDetail = {
 };
 
 export type ListingDetail = ListingCardData & {
-  host: { id: string; full_name: string | null; avatar_url: string | null; bio: string | null; created_at: string };
+  host: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+    bio: string | null;
+    created_at: string;
+    is_verified: boolean;
+    is_superhost: boolean;
+    response_time_minutes: number | null;
+  };
   reviewsFull: {
     id: string;
     rating: number;
     comment: string;
     created_at: string;
+    rating_cleanliness: number | null;
+    rating_location: number | null;
+    rating_value: number | null;
+    rating_communication: number | null;
     author: { full_name: string | null; avatar_url: string | null } | null;
   }[];
+  subRatings: {
+    cleanliness: number | null;
+    location: number | null;
+    value: number | null;
+    communication: number | null;
+  };
   roomTypes: RoomTypeDetail[];
 };
 
@@ -325,7 +446,7 @@ export async function getListingById(
   const { data, error } = await supabase
     .from("listings")
     .select(
-      "*, listing_photos(url, position), reviews(rating), host:profiles!listings_host_id_fkey(id, full_name, avatar_url, bio, created_at)"
+      "*, listing_photos(url, position), reviews(rating), host:profiles!listings_host_id_fkey(id, full_name, avatar_url, bio, created_at, is_verified, is_superhost, response_time_minutes)"
     )
     .eq("id", id)
     .maybeSingle();
@@ -342,9 +463,28 @@ export async function getListingById(
 
   const { data: reviewsFull } = await supabase
     .from("reviews")
-    .select("id, rating, comment, created_at, author:profiles!reviews_author_id_fkey(full_name, avatar_url)")
+    .select(
+      "id, rating, comment, created_at, rating_cleanliness, rating_location, rating_value, rating_communication, author:profiles!reviews_author_id_fkey(full_name, avatar_url)"
+    )
     .eq("listing_id", id)
     .order("created_at", { ascending: false });
+
+  // Average sub-ratings for the property-score panel.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const avgSub = (key: string): number | null => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const vals = ((reviewsFull as any[]) ?? [])
+      .map((r) => r[key])
+      .filter((v) => v != null) as number[];
+    if (!vals.length) return null;
+    return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 100) / 100;
+  };
+  const subRatings = {
+    cleanliness: avgSub("rating_cleanliness"),
+    location: avgSub("rating_location"),
+    value: avgSub("rating_value"),
+    communication: avgSub("rating_communication"),
+  };
 
   // Room types + their physical instances (inventory)
   const { data: rts } = await supabase
@@ -400,6 +540,7 @@ export async function getListingById(
     host: row.host,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     reviewsFull: (reviewsFull as any) ?? [],
+    subRatings,
     roomTypes,
   };
 }

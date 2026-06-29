@@ -2,6 +2,7 @@ import { SearchX } from "lucide-react";
 import { CategoryRow } from "@/components/category-row";
 import { SearchFilters } from "@/components/search-filters";
 import { SortSelect } from "@/components/sort-select";
+import { FilterChips } from "@/components/filter-chips";
 import { ListingCard } from "@/components/listing-card";
 import { getListings, getUserFavoriteIds, type ListingFilters } from "@/lib/queries";
 import { getSessionProfile } from "@/lib/auth";
@@ -35,6 +36,7 @@ function buildFilters(sp: SP): ListingFilters {
     minPrice: num(sp.minPrice),
     maxPrice: num(sp.maxPrice),
     amenities: Array.isArray(amenity) ? amenity : amenity ? [amenity] : undefined,
+    entire: str(sp.entire) === "1",
     sort: str(sp.sort) as ListingFilters["sort"],
   };
 }
@@ -61,7 +63,7 @@ export default async function SearchPage({
 
   return (
     <div>
-      <section className="sticky top-16 z-30 border-b border-neutral-100 bg-white/95 backdrop-blur">
+      <section className="sticky top-16 z-30 border-b border-line bg-canvas/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
           <div className="min-w-0 flex-1">
             <CategoryRow query={query} />
@@ -70,6 +72,9 @@ export default async function SearchPage({
             <SortSelect query={query} />
             <SearchFilters query={query} />
           </div>
+        </div>
+        <div className="mx-auto max-w-7xl px-4 pb-3 sm:px-6 lg:px-8">
+          <FilterChips query={query} />
         </div>
       </section>
 

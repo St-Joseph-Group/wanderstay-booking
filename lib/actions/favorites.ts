@@ -23,9 +23,18 @@ export async function toggleFavorite(
     return { ok: true, favorited: false };
   }
 
-  await supabase
-    .from("favorites")
-    .insert({ user_id: user.id, listing_id: listingId });
+  // Snapshot the current price so we can show a price-drop badge later.
+  const { data: listing } = await supabase
+    .from("listings")
+    .select("price_per_night")
+    .eq("id", listingId)
+    .maybeSingle();
+
+  await supabase.from("favorites").insert({
+    user_id: user.id,
+    listing_id: listingId,
+    price_at_save: listing?.price_per_night ?? null,
+  });
   revalidatePath("/wishlists");
   return { ok: true, favorited: true };
 }

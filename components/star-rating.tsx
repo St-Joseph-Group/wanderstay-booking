@@ -17,7 +17,7 @@ export function StarRating({
   }
   return (
     <span className={cn("inline-flex items-center gap-1 text-sm text-ink", className)}>
-      <Star className="h-3.5 w-3.5 fill-current text-ink" />
+      <Star className="h-3.5 w-3.5 fill-accent text-accent" />
       <span className="font-semibold">{rating.toFixed(2)}</span>
       {showCount && reviewCount !== undefined && (
         <span className="text-muted">({reviewCount})</span>
