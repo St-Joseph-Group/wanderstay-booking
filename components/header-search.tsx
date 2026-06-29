@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, Sparkles } from "lucide-react";
+import { Search, Sparkles, X } from "lucide-react";
 import { SearchBar } from "@/components/search-bar";
 
 const SUGGESTIONS = ["Bali", "Bangkok", "Siargao", "Tokyo", "Lisbon"];
@@ -50,9 +50,16 @@ export function HeaderSearch() {
           onClick={() => setOpen(false)}
         >
           <div
-            className="animate-fade-in w-full max-w-3xl rounded-2xl border border-line bg-surface p-6 shadow-pop"
+            className="animate-fade-in relative w-full max-w-3xl rounded-2xl border border-line bg-surface p-6 shadow-pop"
             onClick={(e) => e.stopPropagation()}
           >
+            <button
+              onClick={() => setOpen(false)}
+              aria-label="Close search"
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-ink transition-colors hover:bg-neutral-100"
+            >
+              <X className="h-5 w-5" />
+            </button>
             <h2 className="font-display text-2xl font-semibold text-ink">
               Where would you like to escape?
             </h2>
