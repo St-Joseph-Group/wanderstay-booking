@@ -20,6 +20,16 @@ export function HeaderSearch() {
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
+  // Lock background scroll/interaction while the modal is open.
+  React.useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
   return (
     <>
       <button
