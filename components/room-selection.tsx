@@ -41,6 +41,17 @@ export function RoomSelection({
   const [guests, setGuests] = React.useState(1);
   const [showCal, setShowCal] = React.useState(false);
 
+  // Show two months on wider screens so an upcoming, fully-available month is
+  // always visible (otherwise late in a month the current view looks empty).
+  const [months, setMonths] = React.useState(1);
+  React.useEffect(() => {
+    const mq = window.matchMedia("(min-width: 640px)");
+    const update = () => setMonths(mq.matches ? 2 : 1);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
   const minPrice = Math.min(...roomTypes.map((r) => r.price_per_night));
   const maxCap = Math.max(1, ...roomTypes.map((r) => r.max_guests));
   const hasDates = !!(range?.from && range?.to);
@@ -62,7 +73,7 @@ export function RoomSelection({
   }
 
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-card">
+    <div className="relative rounded-2xl border border-neutral-200 bg-white p-5 shadow-card">
       <div className="flex items-baseline justify-between">
         <p className="text-xl text-ink">
           {multi && <span className="text-base text-muted">from </span>}
@@ -124,8 +135,28 @@ export function RoomSelection({
       </div>
 
       {showCal && (
-        <div className="mt-3 flex justify-center rounded-xl border border-neutral-200 p-2">
-          <DateRangeCalendar range={range} onChange={setRange} />
+        <div className="absolute right-0 top-full z-50 mt-2 w-[min(640px,92vw)] rounded-2xl border border-neutral-200 bg-white p-3 shadow-pop">
+          <div className="overflow-x-auto">
+            <DateRangeCalendar
+              range={range}
+              onChange={setRange}
+              numberOfMonths={months}
+            />
+          </div>
+          <div className="mt-2 flex items-center justify-between border-t border-neutral-100 pt-2">
+            <button
+              onClick={() => setRange(undefined)}
+              className="text-sm font-semibold text-ink underline"
+            >
+              Clear dates
+            </button>
+            <button
+              onClick={() => setShowCal(false)}
+              className="rounded-lg bg-ink px-4 py-1.5 text-sm font-semibold text-white"
+            >
+              Done
+            </button>
+          </div>
         </div>
       )}
 
