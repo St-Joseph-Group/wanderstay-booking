@@ -54,11 +54,19 @@ export function RoomSelection({
 
   const minPrice = Math.min(...roomTypes.map((r) => r.price_per_night));
   const maxCap = Math.max(1, ...roomTypes.map((r) => r.max_guests));
-  const hasDates = !!(range?.from && range?.to);
+  // A usable stay needs check-out strictly after check-in. react-day-picker
+  // sets to === from on the first click, so guard against that 0-night range.
+  const hasDates =
+    !!(range?.from && range?.to) &&
+    range!.to!.getTime() > range!.from!.getTime();
   const multi = roomTypes.length > 1;
 
   function reserve(rt: RoomTypeDetail) {
-    if (!range?.from || !range?.to) {
+    if (
+      !range?.from ||
+      !range?.to ||
+      range.to.getTime() <= range.from.getTime()
+    ) {
       setShowCal(true);
       return;
     }
@@ -102,8 +110,8 @@ export function RoomSelection({
           </button>
           <button onClick={() => setShowCal((s) => !s)} className="px-3 py-2.5 text-left">
             <span className="block text-[10px] font-bold uppercase text-ink">Checkout</span>
-            <span className={cn("text-sm", range?.to ? "text-ink" : "text-muted")}>
-              {range?.to ? format(range.to, "MMM d, yyyy") : "Add date"}
+            <span className={cn("text-sm", hasDates ? "text-ink" : "text-muted")}>
+              {hasDates ? format(range!.to!, "MMM d, yyyy") : "Add date"}
             </span>
           </button>
         </div>
