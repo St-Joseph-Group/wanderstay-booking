@@ -88,8 +88,8 @@ export type Database = {
         Relationships: [];
       };
       favorites: {
-        Row: { created_at: string; listing_id: string; user_id: string };
-        Insert: { created_at?: string; listing_id: string; user_id: string };
+        Row: { created_at: string; listing_id: string; user_id: string; price_at_save: number | null };
+        Insert: { created_at?: string; listing_id: string; user_id: string; price_at_save?: number | null };
         Update: Partial<Database["public"]["Tables"]["favorites"]["Insert"]>;
         Relationships: [];
       };
@@ -121,6 +121,7 @@ export type Database = {
           service_fee_pct: number;
           status: Database["public"]["Enums"]["listing_status"];
           title: string;
+          cancellation_policy: string;
         };
         Insert: {
           address?: string | null;
@@ -143,6 +144,7 @@ export type Database = {
           service_fee_pct?: number;
           status?: Database["public"]["Enums"]["listing_status"];
           title: string;
+          cancellation_policy?: string;
         };
         Update: Partial<Database["public"]["Tables"]["listings"]["Insert"]>;
         Relationships: [];
@@ -155,6 +157,9 @@ export type Database = {
           full_name: string | null;
           id: string;
           is_host: boolean;
+          is_verified: boolean;
+          is_superhost: boolean;
+          response_time_minutes: number | null;
         };
         Insert: {
           avatar_url?: string | null;
@@ -163,6 +168,9 @@ export type Database = {
           full_name?: string | null;
           id: string;
           is_host?: boolean;
+          is_verified?: boolean;
+          is_superhost?: boolean;
+          response_time_minutes?: number | null;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
         Relationships: [];
@@ -176,6 +184,10 @@ export type Database = {
           id: string;
           listing_id: string;
           rating: number;
+          rating_cleanliness: number | null;
+          rating_location: number | null;
+          rating_value: number | null;
+          rating_communication: number | null;
         };
         Insert: {
           author_id: string;
@@ -185,6 +197,10 @@ export type Database = {
           id?: string;
           listing_id: string;
           rating: number;
+          rating_cleanliness?: number | null;
+          rating_location?: number | null;
+          rating_value?: number | null;
+          rating_communication?: number | null;
         };
         Update: Partial<Database["public"]["Tables"]["reviews"]["Insert"]>;
         Relationships: [];
