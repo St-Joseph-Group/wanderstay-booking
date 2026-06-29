@@ -64,17 +64,19 @@ export default async function SearchPage({
   return (
     <div>
       <section className="sticky top-16 z-30 border-b border-line bg-canvas/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
-          <div className="min-w-0 flex-1">
-            <CategoryRow query={query} />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-4">
+            <div className="min-w-0 flex-1">
+              <CategoryRow query={query} />
+            </div>
+            <div className="flex shrink-0 items-center gap-3">
+              <SortSelect query={query} />
+              <SearchFilters query={query} />
+            </div>
           </div>
-          <div className="flex shrink-0 items-center gap-2 pb-2">
-            <SortSelect query={query} />
-            <SearchFilters query={query} />
+          <div className="pb-3 pt-1">
+            <FilterChips query={query} />
           </div>
-        </div>
-        <div className="mx-auto max-w-7xl px-4 pb-3 sm:px-6 lg:px-8">
-          <FilterChips query={query} />
         </div>
       </section>
 

@@ -48,13 +48,13 @@ export function HeaderSearch() {
     <>
       <button
         onClick={open}
-        className="hidden items-center gap-3 rounded-full border border-line py-2 pl-5 pr-2 shadow-float transition-shadow hover:shadow-pop md:flex"
+        className="hidden items-center gap-3 rounded-full border border-line py-1.5 pl-5 pr-1.5 shadow-float transition-shadow hover:shadow-pop md:flex"
       >
         <span className="text-sm font-medium text-ink">
           Where would you like to escape?
         </span>
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-white">
-          <Search className="h-4 w-4" />
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-white">
+          <Search className="h-3.5 w-3.5" />
         </span>
       </button>
 

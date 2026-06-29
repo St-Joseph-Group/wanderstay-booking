@@ -11,13 +11,15 @@ export async function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-canvas/95 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <Logo />
+      <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 sm:px-6 lg:px-8">
+        <div className="justify-self-start">
+          <Logo />
+        </div>
 
         {/* Curated search trigger → expands the full search in a modal */}
         <HeaderSearch />
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 justify-self-end">
           <Link
             href={profile?.is_host ? "/host" : "/host/become"}
             className="hidden rounded-full px-4 py-2.5 text-sm font-semibold text-ink hover:bg-neutral-100 lg:block"
