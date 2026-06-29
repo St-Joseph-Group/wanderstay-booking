@@ -391,30 +391,27 @@ export async function getWishlist(): Promise<ListingCardData[]> {
     .map((row) => ({ ...toCard(row.listing), priceAtSave: row.price_at_save }));
 }
 
-// "Recommended for you" — biased toward the cities the user has saved, else
-// simply the best-matched stays overall.
-export async function getRecommended(limit = 4): Promise<ListingCardData[]> {
-  const all = await getListings({ sort: "best_match" });
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (user) {
-    const { data: favs } = await supabase
-      .from("favorites")
-      .select("listing:listings(city)")
-      .eq("user_id", user.id);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cities = new Set(
-      ((favs as any[]) ?? []).map((f) => f.listing?.city).filter(Boolean)
+// "Recommended for you" — pure re-rank of an already-fetched pool (no extra DB
+// round trip): best-match score, biased toward the cities the user has saved.
+export function pickRecommended(
+  listings: ListingCardData[],
+  favoriteIds: Set<string>,
+  limit = 4
+): ListingCardData[] {
+  const ranked = [...listings].sort(
+    (a, b) => bestMatchScore(b) - bestMatchScore(a)
+  );
+  if (favoriteIds.size) {
+    const favCities = new Set(
+      listings.filter((l) => favoriteIds.has(l.id)).map((l) => l.city)
     );
-    if (cities.size) {
-      const preferred = all.filter((c) => cities.has(c.city));
-      const rest = all.filter((c) => !cities.has(c.city));
+    if (favCities.size) {
+      const preferred = ranked.filter((l) => favCities.has(l.city));
+      const rest = ranked.filter((l) => !favCities.has(l.city));
       return [...preferred, ...rest].slice(0, limit);
     }
   }
-  return all.slice(0, limit);
+  return ranked.slice(0, limit);
 }
 
 export type RoomTypeDetail = {
@@ -469,31 +466,51 @@ export async function getListingById(
   id: string
 ): Promise<ListingDetail | null> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("listings")
-    .select(
-      "*, listing_photos(url, position), reviews(rating), host:profiles!listings_host_id_fkey(id, full_name, avatar_url, bio, created_at, is_verified, is_superhost, response_time_minutes)"
-    )
-    .eq("id", id)
-    .maybeSingle();
 
-  if (error || !data) {
-    if (error) console.error("getListingById error", error.message);
+  // Fetch the listing, its reviews, room types and bookings in parallel —
+  // they are all keyed by id and have no dependency on each other.
+  const [listingRes, reviewsRes, rtsRes, bksRes] = await Promise.all([
+    supabase
+      .from("listings")
+      .select(
+        "*, listing_photos(url, position), reviews(rating), host:profiles!listings_host_id_fkey(id, full_name, avatar_url, bio, created_at, is_verified, is_superhost, response_time_minutes)"
+      )
+      .eq("id", id)
+      .maybeSingle(),
+    supabase
+      .from("reviews")
+      .select(
+        "id, rating, comment, created_at, rating_cleanliness, rating_location, rating_value, rating_communication, author:profiles!reviews_author_id_fkey(full_name, avatar_url)"
+      )
+      .eq("listing_id", id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("room_types")
+      .select(
+        "id, name, description, price_per_night, cleaning_fee, max_guests, beds, bathrooms, size_sqm, amenities, position, room_instances(id)"
+      )
+      .eq("listing_id", id)
+      .order("position", { ascending: true }),
+    supabase
+      .from("bookings")
+      .select("room_type_id, room_instance_id, check_in, check_out")
+      .eq("listing_id", id)
+      .neq("status", "cancelled"),
+  ]);
+
+  if (listingRes.error || !listingRes.data) {
+    if (listingRes.error)
+      console.error("getListingById error", listingRes.error.message);
     return null;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const row = data as any;
+  const row = listingRes.data as any;
   const card = toCard(row);
   const serviceFeePct = row.service_fee_pct as number;
-
-  const { data: reviewsFull } = await supabase
-    .from("reviews")
-    .select(
-      "id, rating, comment, created_at, rating_cleanliness, rating_location, rating_value, rating_communication, author:profiles!reviews_author_id_fkey(full_name, avatar_url)"
-    )
-    .eq("listing_id", id)
-    .order("created_at", { ascending: false });
+  const reviewsFull = reviewsRes.data;
+  const rts = rtsRes.data;
+  const bks = bksRes.data;
 
   // Average sub-ratings for the property-score panel.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -512,22 +529,7 @@ export async function getListingById(
     communication: avgSub("rating_communication"),
   };
 
-  // Room types + their physical instances (inventory)
-  const { data: rts } = await supabase
-    .from("room_types")
-    .select(
-      "id, name, description, price_per_night, cleaning_fee, max_guests, beds, bathrooms, size_sqm, amenities, position, room_instances(id)"
-    )
-    .eq("listing_id", id)
-    .order("position", { ascending: true });
-
-  // Active bookings on this listing, grouped to each room type for availability math
-  const { data: bks } = await supabase
-    .from("bookings")
-    .select("room_type_id, room_instance_id, check_in, check_out")
-    .eq("listing_id", id)
-    .neq("status", "cancelled");
-
+  // Group active bookings to each room type for availability math.
   const bookingsByType = new Map<
     string,
     { room_instance_id: string; check_in: string; check_out: string }[]

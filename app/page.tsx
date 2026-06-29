@@ -4,17 +4,17 @@ import { SearchBar } from "@/components/search-bar";
 import { CategoryRow } from "@/components/category-row";
 import { ListingCard } from "@/components/listing-card";
 import { RecentlyViewed } from "@/components/recently-viewed";
-import { getListings, getUserFavoriteIds, getRecommended } from "@/lib/queries";
+import { getListings, getUserFavoriteIds, pickRecommended } from "@/lib/queries";
 import { getSessionProfile } from "@/lib/auth";
 
 export default async function HomePage() {
-  const [listings, recommended, favorites, session] = await Promise.all([
+  const [listings, favorites, session] = await Promise.all([
     getListings(),
-    getRecommended(4),
     getUserFavoriteIds(),
     getSessionProfile(),
   ]);
   const isAuthed = !!session;
+  const recommended = pickRecommended(listings, favorites, 4);
 
   const cities = Array.from(new Set(listings.map((l) => l.city))).slice(0, 6);
 
