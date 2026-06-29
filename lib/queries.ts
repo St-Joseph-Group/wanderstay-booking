@@ -391,6 +391,32 @@ export async function getWishlist(): Promise<ListingCardData[]> {
     .map((row) => ({ ...toCard(row.listing), priceAtSave: row.price_at_save }));
 }
 
+// "Recommended for you" — biased toward the cities the user has saved, else
+// simply the best-matched stays overall.
+export async function getRecommended(limit = 4): Promise<ListingCardData[]> {
+  const all = await getListings({ sort: "best_match" });
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    const { data: favs } = await supabase
+      .from("favorites")
+      .select("listing:listings(city)")
+      .eq("user_id", user.id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cities = new Set(
+      ((favs as any[]) ?? []).map((f) => f.listing?.city).filter(Boolean)
+    );
+    if (cities.size) {
+      const preferred = all.filter((c) => cities.has(c.city));
+      const rest = all.filter((c) => !cities.has(c.city));
+      return [...preferred, ...rest].slice(0, limit);
+    }
+  }
+  return all.slice(0, limit);
+}
+
 export type RoomTypeDetail = {
   id: string;
   name: string;

@@ -6,6 +6,7 @@ import { RoomSelection } from "@/components/room-selection";
 import { ListingMap } from "@/components/listing-map";
 import { Avatar } from "@/components/avatar";
 import { StarRating } from "@/components/star-rating";
+import { RecordView } from "@/components/record-view";
 import { getListingById, getUserFavoriteIds } from "@/lib/queries";
 import { getSessionProfile } from "@/lib/auth";
 import { AMENITY_ICONS, PROPERTY_TYPE_LABELS } from "@/lib/constants";
@@ -37,6 +38,16 @@ export default async function ListingPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+      <RecordView
+        item={{
+          id: listing.id,
+          title: listing.title,
+          city: listing.city,
+          country: listing.country,
+          price: listing.price_per_night,
+          photo: listing.photos[0] ?? null,
+        }}
+      />
       {/* Title */}
       <div className="mb-4">
         <h1 className="text-2xl font-bold text-ink sm:text-3xl">{listing.title}</h1>

@@ -1,13 +1,16 @@
 import Link from "next/link";
+import { Sparkles } from "lucide-react";
 import { SearchBar } from "@/components/search-bar";
 import { CategoryRow } from "@/components/category-row";
 import { ListingCard } from "@/components/listing-card";
-import { getListings, getUserFavoriteIds } from "@/lib/queries";
+import { RecentlyViewed } from "@/components/recently-viewed";
+import { getListings, getUserFavoriteIds, getRecommended } from "@/lib/queries";
 import { getSessionProfile } from "@/lib/auth";
 
 export default async function HomePage() {
-  const [listings, favorites, session] = await Promise.all([
+  const [listings, recommended, favorites, session] = await Promise.all([
     getListings(),
+    getRecommended(4),
     getUserFavoriteIds(),
     getSessionProfile(),
   ]);
@@ -29,16 +32,46 @@ export default async function HomePage() {
               the world.
             </p>
           </div>
-          <div className="mt-8 flex justify-start">
+          <div className="mt-8 flex flex-wrap items-center gap-3">
             <SearchBar />
+            <Link
+              href="/plan"
+              className="inline-flex items-center gap-2 rounded-xl border border-brand bg-surface px-4 py-3 text-sm font-semibold text-brand transition-colors hover:bg-brand hover:text-white"
+            >
+              <Sparkles className="h-4 w-4" /> Plan my Trip
+            </Link>
           </div>
         </div>
       </section>
 
       {/* Categories */}
-      <section className="mx-auto max-w-7xl border-b border-neutral-100 px-4 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-7xl border-b border-line px-4 sm:px-6 lg:px-8">
         <CategoryRow query="" />
       </section>
+
+      {/* Recommended for you */}
+      {recommended.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
+          <div className="mb-5 flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-accent-dark" />
+            <h2 className="text-2xl font-bold text-ink">Recommended for you</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+            {recommended.map((listing, i) => (
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                isFavorited={favorites.has(listing.id)}
+                isAuthed={isAuthed}
+                priority={i < 4}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Continue where you left off (client, localStorage) */}
+      <RecentlyViewed />
 
       {/* Featured listings */}
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
