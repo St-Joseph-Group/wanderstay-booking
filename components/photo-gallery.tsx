@@ -7,9 +7,11 @@ import { Grip, X, ChevronLeft, ChevronRight } from "lucide-react";
 export function PhotoGallery({
   photos,
   title,
+  headline,
 }: {
   photos: string[];
   title: string;
+  headline?: string;
 }) {
   const [open, setOpen] = React.useState(false);
   const [active, setActive] = React.useState(0);
@@ -33,6 +35,14 @@ export function PhotoGallery({
             className="object-cover transition-opacity hover:opacity-95"
             priority
           />
+          {headline && (
+            <>
+              <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-transparent" />
+              <span className="pointer-events-none absolute bottom-4 left-4 text-left font-display text-xl font-semibold text-white drop-shadow sm:text-2xl">
+                {headline}
+              </span>
+            </>
+          )}
         </button>
         {[1, 2, 3, 4].map((i) => (
           <button

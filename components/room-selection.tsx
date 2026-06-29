@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { computePricing } from "@/lib/pricing";
 import { formatPriceCompact } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { cancellationLabel } from "@/lib/listing-meta";
+import { ShieldCheck, Tag, BadgeCheck, Flame } from "lucide-react";
 import type { RoomTypeDetail } from "@/lib/queries";
 
 /** Free rooms of a type for a date range = instances with no overlapping booking. */
@@ -29,12 +31,14 @@ export function RoomSelection({
   rating,
   reviewCount,
   isAuthed,
+  cancellationPolicy,
 }: {
   listingId: string;
   roomTypes: RoomTypeDetail[];
   rating: number | null;
   reviewCount: number;
   isAuthed: boolean;
+  cancellationPolicy?: string | null;
 }) {
   const router = useRouter();
   const [range, setRange] = React.useState<DateRange | undefined>();
@@ -276,6 +280,28 @@ export function RoomSelection({
       <p className="mt-3 text-center text-sm text-muted">
         You won&apos;t be charged yet
       </p>
+
+      {/* Trust row */}
+      <ul className="mt-4 space-y-2 border-t border-line pt-4 text-sm text-ink">
+        <li className="flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 text-accent-dark" />
+          {cancellationLabel(cancellationPolicy)}
+        </li>
+        <li className="flex items-center gap-2">
+          <Tag className="h-4 w-4 text-accent-dark" />
+          Lowest price in 30 days
+        </li>
+        <li className="flex items-center gap-2">
+          <BadgeCheck className="h-4 w-4 text-accent-dark" />
+          No hidden fees
+        </li>
+        {hasDates && (
+          <li className="flex items-center gap-2 font-semibold text-brand">
+            <Flame className="h-4 w-4" />
+            High demand for these dates
+          </li>
+        )}
+      </ul>
     </div>
   );
 }

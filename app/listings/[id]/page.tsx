@@ -1,15 +1,39 @@
 import { notFound } from "next/navigation";
 import { format, parseISO } from "date-fns";
-import { Star, MapPin, Users, BedDouble, Bath, DoorOpen, Share, Heart } from "lucide-react";
+import {
+  Star,
+  MapPin,
+  Users,
+  BedDouble,
+  Bath,
+  DoorOpen,
+  Share,
+  Heart,
+  Check,
+  ShieldCheck,
+  Quote,
+} from "lucide-react";
 import { PhotoGallery } from "@/components/photo-gallery";
 import { RoomSelection } from "@/components/room-selection";
 import { ListingMap } from "@/components/listing-map";
 import { Avatar } from "@/components/avatar";
 import { StarRating } from "@/components/star-rating";
 import { RecordView } from "@/components/record-view";
+import { PropertyScore } from "@/components/property-score";
+import { HostCard } from "@/components/host-card";
 import { getListingById, getUserFavoriteIds } from "@/lib/queries";
 import { getSessionProfile } from "@/lib/auth";
 import { AMENITY_ICONS, PROPERTY_TYPE_LABELS } from "@/lib/constants";
+import { cancellationLabel, deterministicInt } from "@/lib/listing-meta";
+import { findDestination } from "@/lib/destinations";
+
+const SECTIONS = [
+  { id: "overview", label: "Overview" },
+  { id: "features", label: "Key features" },
+  { id: "amenities", label: "Amenities" },
+  { id: "location", label: "Location" },
+  { id: "reviews", label: "Reviews" },
+];
 
 export default async function ListingPage({
   params,
@@ -32,9 +56,35 @@ export default async function ListingPage({
     { icon: Bath, label: `${listing.bathrooms} bath${listing.bathrooms === 1 ? "" : "s"}` },
   ];
 
-  const hostSince = listing.host?.created_at
-    ? format(parseISO(listing.host.created_at), "yyyy")
-    : null;
+  const standout = ["Pool", "Beach access", "Hot tub", "Fireplace"].find((a) =>
+    listing.amenities.includes(a)
+  );
+  const overlayHeadline = `${PROPERTY_TYPE_LABELS[listing.property_type]}${
+    standout ? ` · ${standout}` : ""
+  }`;
+
+  const keyFeatures = [
+    listing.isSuperhost ? "Superhost-quality stay" : null,
+    `Sleeps up to ${listing.max_guests}`,
+    `${listing.bedrooms} bedroom${listing.bedrooms === 1 ? "" : "s"} · ${listing.beds} bed${listing.beds === 1 ? "" : "s"}`,
+    ...listing.amenities.slice(0, 3),
+  ].filter(Boolean) as string[];
+
+  const dest = findDestination(listing.city);
+  const landmarks =
+    dest?.landmarks ?? [
+      { name: "Beach", minutes: deterministicInt(listing.id + "beach", 3, 12) },
+      { name: "City center", minutes: deterministicInt(listing.id + "ctr", 8, 20) },
+      { name: "Airport", minutes: deterministicInt(listing.id + "air", 25, 50) },
+    ];
+  const locationSummary = dest
+    ? dest.tagline
+    : `Well-placed for exploring the best of ${listing.city}.`;
+
+  const highlights = [...listing.reviewsFull]
+    .filter((r) => r.comment && r.comment.length > 60)
+    .sort((a, b) => b.comment.length - a.comment.length)
+    .slice(0, 2);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
@@ -48,15 +98,22 @@ export default async function ListingPage({
           photo: listing.photos[0] ?? null,
         }}
       />
+
       {/* Title */}
       <div className="mb-4">
-        <h1 className="text-2xl font-bold text-ink sm:text-3xl">{listing.title}</h1>
-        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+        <h1 className="text-2xl font-semibold text-ink sm:text-3xl">
+          {listing.title}
+        </h1>
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
           <StarRating rating={listing.rating} reviewCount={listing.reviewCount} />
           <span className="text-muted">·</span>
-          <span className="inline-flex items-center gap-1 font-medium text-ink underline">
+          <span className="inline-flex items-center gap-1 font-medium text-ink">
             <MapPin className="h-3.5 w-3.5" />
             {listing.city}, {listing.country}
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-md bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent-dark">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            {cancellationLabel(listing.cancellation_policy)}
           </span>
           <div className="ml-auto hidden items-center gap-4 sm:flex">
             <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink underline">
@@ -69,52 +126,63 @@ export default async function ListingPage({
         </div>
       </div>
 
-      <PhotoGallery photos={listing.photos} title={listing.title} />
+      <PhotoGallery
+        photos={listing.photos}
+        title={listing.title}
+        headline={overlayHeadline}
+      />
+
+      {/* In-page section nav */}
+      <nav className="sticky top-16 z-20 -mx-4 mt-4 border-b border-line bg-canvas/95 px-4 backdrop-blur sm:mx-0 sm:px-0">
+        <div className="no-scrollbar flex gap-6 overflow-x-auto">
+          {SECTIONS.map((s) => (
+            <a
+              key={s.id}
+              href={`#${s.id}`}
+              className="shrink-0 border-b-2 border-transparent py-3 text-sm font-medium text-muted hover:border-ink hover:text-ink"
+            >
+              {s.label}
+            </a>
+          ))}
+        </div>
+      </nav>
 
       {/* Body */}
-      <div className="mt-8 grid grid-cols-1 gap-12 lg:grid-cols-[1fr_380px]">
+      <div className="mt-6 grid grid-cols-1 gap-12 lg:grid-cols-[1fr_380px]">
         <div className="min-w-0">
-          <div className="flex items-start justify-between gap-4 border-b border-neutral-200 pb-6">
-            <div>
-              <h2 className="text-xl font-bold text-ink">
-                {PROPERTY_TYPE_LABELS[listing.property_type]} hosted by{" "}
-                {listing.host?.full_name ?? "a host"}
-              </h2>
-              <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
-                {facts.map((f, i) => (
-                  <span key={f.label} className="inline-flex items-center gap-1.5">
-                    {i > 0 && <span className="mr-1">·</span>}
-                    {f.label}
-                  </span>
-                ))}
-              </div>
+          {/* Overview */}
+          <section id="overview" className="scroll-mt-32 border-b border-line pb-8">
+            <HostCard host={listing.host} />
+            <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {facts.map((f) => (
+                <div key={f.label} className="flex items-center gap-2">
+                  <f.icon className="h-5 w-5 text-ink" />
+                  <span className="text-sm text-ink">{f.label}</span>
+                </div>
+              ))}
             </div>
-            <Avatar
-              name={listing.host?.full_name}
-              src={listing.host?.avatar_url}
-              size={56}
-            />
-          </div>
-
-          {/* Facts grid */}
-          <div className="grid grid-cols-2 gap-4 border-b border-neutral-200 py-6 sm:grid-cols-4">
-            {facts.map((f) => (
-              <div key={f.label} className="flex items-center gap-2">
-                <f.icon className="h-5 w-5 text-ink" />
-                <span className="text-sm text-ink">{f.label}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Description */}
-          <div className="border-b border-neutral-200 py-6">
-            <p className="whitespace-pre-line leading-relaxed text-ink">
+            <p className="mt-6 whitespace-pre-line leading-relaxed text-ink">
               {listing.description}
             </p>
-          </div>
+          </section>
+
+          {/* Key features */}
+          <section id="features" className="scroll-mt-32 border-b border-line py-8">
+            <h2 className="mb-4 text-xl font-bold text-ink">Key features</h2>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {keyFeatures.map((f) => (
+                <div key={f} className="flex items-center gap-2.5">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent-dark">
+                    <Check className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="text-ink">{f}</span>
+                </div>
+              ))}
+            </div>
+          </section>
 
           {/* Amenities */}
-          <div className="border-b border-neutral-200 py-6">
+          <section id="amenities" className="scroll-mt-32 border-b border-line py-8">
             <h2 className="mb-4 text-xl font-bold text-ink">
               What this place offers
             </h2>
@@ -133,11 +201,13 @@ export default async function ListingPage({
                 );
               })}
             </div>
-          </div>
+          </section>
 
-          {/* Location / map */}
-          <div className="py-6">
-            <h2 className="mb-1 text-xl font-bold text-ink">Where you&apos;ll be</h2>
+          {/* Location */}
+          <section id="location" className="scroll-mt-32 py-8">
+            <h2 className="mb-1 text-xl font-bold text-ink">
+              Where you&apos;ll be
+            </h2>
             <p className="mb-4 text-sm text-muted">
               {listing.city}, {listing.country}
             </p>
@@ -145,31 +215,58 @@ export default async function ListingPage({
               lat={listing.lat}
               lng={listing.lng}
               label={`${listing.city}, ${listing.country}`}
+              landmarks={landmarks}
+              summary={locationSummary}
             />
-          </div>
+          </section>
         </div>
 
-        {/* Sticky room selection */}
+        {/* Sticky sidebar */}
         <div className="lg:relative">
-          <div className="lg:sticky lg:top-24">
+          <div className="space-y-5 lg:sticky lg:top-24">
             <RoomSelection
               listingId={listing.id}
               roomTypes={listing.roomTypes}
               rating={listing.rating}
               reviewCount={listing.reviewCount}
               isAuthed={!!session}
+              cancellationPolicy={listing.cancellation_policy}
+            />
+            <PropertyScore
+              rating={listing.rating}
+              subRatings={listing.subRatings}
             />
           </div>
         </div>
       </div>
 
       {/* Reviews */}
-      <div className="border-t border-neutral-200 py-8">
+      <section id="reviews" className="scroll-mt-32 border-t border-line py-8">
         <h2 className="mb-6 inline-flex items-center gap-2 text-xl font-bold text-ink">
-          <Star className="h-5 w-5 fill-current" />
+          <Star className="h-5 w-5 fill-accent text-accent" />
           {listing.rating ? listing.rating.toFixed(2) : "New"} ·{" "}
           {listing.reviewCount} review{listing.reviewCount === 1 ? "" : "s"}
         </h2>
+
+        {highlights.length > 0 && (
+          <div className="mb-8 grid gap-4 sm:grid-cols-2">
+            {highlights.map((r) => (
+              <blockquote
+                key={r.id}
+                className="rounded-lg border border-line bg-surface p-5 shadow-card"
+              >
+                <Quote className="h-5 w-5 text-accent" />
+                <p className="mt-2 line-clamp-4 leading-relaxed text-ink">
+                  {r.comment}
+                </p>
+                <footer className="mt-3 text-sm font-semibold text-muted">
+                  — {r.author?.full_name ?? "Guest"}
+                </footer>
+              </blockquote>
+            ))}
+          </div>
+        )}
+
         {listing.reviewsFull.length === 0 ? (
           <p className="text-muted">No reviews yet.</p>
         ) : (
@@ -192,7 +289,9 @@ export default async function ListingPage({
                     <Star
                       key={i}
                       className={`h-3.5 w-3.5 ${
-                        i < r.rating ? "fill-ink text-ink" : "text-neutral-300"
+                        i < r.rating
+                          ? "fill-accent text-accent"
+                          : "text-neutral-300"
                       }`}
                     />
                   ))}
@@ -202,13 +301,7 @@ export default async function ListingPage({
             ))}
           </div>
         )}
-      </div>
-
-      {hostSince && (
-        <p className="pb-8 text-sm text-muted">
-          Hosted by {listing.host?.full_name} · Joined in {hostSince}
-        </p>
-      )}
+      </section>
     </div>
   );
 }

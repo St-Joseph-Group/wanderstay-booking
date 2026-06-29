@@ -1,26 +1,49 @@
+import { MapPin } from "lucide-react";
+
 export function ListingMap({
   lat,
   lng,
   label,
+  landmarks,
+  summary,
 }: {
   lat: number | null;
   lng: number | null;
   label: string;
+  landmarks?: { name: string; minutes: number }[];
+  summary?: string | null;
 }) {
-  if (lat == null || lng == null) return null;
-  const d = 0.02;
-  const bbox = `${lng - d}%2C${lat - d}%2C${lng + d}%2C${lat + d}`;
-  const src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lng}`;
-
   return (
-    <div className="overflow-hidden rounded-2xl border border-neutral-200">
-      <iframe
-        title={`Map showing ${label}`}
-        src={src}
-        className="h-[360px] w-full"
-        loading="lazy"
-        referrerPolicy="no-referrer-when-downgrade"
-      />
+    <div>
+      {lat != null && lng != null && (
+        <div className="overflow-hidden rounded-lg border border-line">
+          <iframe
+            title={`Map showing ${label}`}
+            src={`https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.02}%2C${lat - 0.02}%2C${lng + 0.02}%2C${lat + 0.02}&layer=mapnik&marker=${lat}%2C${lng}`}
+            className="h-[360px] w-full"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        </div>
+      )}
+
+      {summary && <p className="mt-4 leading-relaxed text-ink">{summary}</p>}
+
+      {landmarks && landmarks.length > 0 && (
+        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+          {landmarks.map((l) => (
+            <div
+              key={l.name}
+              className="flex items-center justify-between rounded-lg border border-line bg-surface px-3 py-2.5 text-sm"
+            >
+              <span className="inline-flex items-center gap-1.5 text-ink">
+                <MapPin className="h-4 w-4 text-accent-dark" /> {l.name}
+              </span>
+              <span className="font-semibold text-muted">{l.minutes} min</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
