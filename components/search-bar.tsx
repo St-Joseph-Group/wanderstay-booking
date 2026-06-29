@@ -16,6 +16,15 @@ export function SearchBar({ variant = "hero" }: { variant?: "hero" | "compact" }
   const [where, setWhere] = React.useState("");
   const [range, setRange] = React.useState<DateRange | undefined>();
   const [guests, setGuests] = React.useState(1);
+  const [months, setMonths] = React.useState(1);
+
+  React.useEffect(() => {
+    const mq = window.matchMedia("(min-width: 640px)");
+    const update = () => setMonths(mq.matches ? 2 : 1);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   React.useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -43,12 +52,12 @@ export function SearchBar({ variant = "hero" }: { variant?: "hero" | "compact" }
 
   return (
     <div ref={ref} className="relative w-full max-w-3xl">
-      <div className="flex items-center rounded-full border border-neutral-200 bg-white shadow-float">
+      <div className="flex items-center rounded-xl border border-line bg-white shadow-float">
         <Segment
           label="Where"
           active={panel === "where"}
           onClick={() => setPanel("where")}
-          className="flex-[1.4] rounded-l-full"
+          className="flex-[1.4] rounded-l-xl"
         >
           <input
             value={where}
@@ -84,7 +93,7 @@ export function SearchBar({ variant = "hero" }: { variant?: "hero" | "compact" }
           <button
             onClick={submit}
             aria-label="Search"
-            className="flex h-12 items-center gap-2 rounded-full bg-brand px-4 font-semibold text-white hover:bg-brand-dark"
+            className="flex h-12 items-center gap-2 rounded-lg bg-brand px-4 font-semibold text-white hover:bg-brand-dark"
           >
             <Search className="h-5 w-5" />
             <span className="hidden pr-1 lg:block">Search</span>
@@ -93,8 +102,14 @@ export function SearchBar({ variant = "hero" }: { variant?: "hero" | "compact" }
       </div>
 
       {panel === "dates" && (
-        <Popover className="left-1/2 -translate-x-1/2">
-          <DateRangeCalendar range={range} onChange={setRange} numberOfMonths={2} />
+        <Popover className="left-1/2 max-w-[92vw] -translate-x-1/2">
+          <div className="overflow-x-auto">
+            <DateRangeCalendar
+              range={range}
+              onChange={setRange}
+              numberOfMonths={months}
+            />
+          </div>
           <div className="mt-2 flex justify-end">
             <button
               onClick={() => setRange(undefined)}
@@ -140,7 +155,7 @@ function Segment({
       onClick={onClick}
       className={cn(
         "flex flex-col items-start px-5 py-3 text-left transition-colors",
-        active ? "rounded-full bg-neutral-100" : "hover:bg-neutral-50 rounded-full",
+        active ? "rounded-lg bg-neutral-100" : "rounded-lg hover:bg-neutral-50",
         className
       )}
     >
