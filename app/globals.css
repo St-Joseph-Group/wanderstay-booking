@@ -122,3 +122,22 @@ h3 {
 .animate-saved-pop {
   animation: saved-pop 0.4s ease-out;
 }
+
+/* MapLibre price pins + popups */
+.ws-pin {
+  background: var(--color-brand);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.maplibregl-popup-content {
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: var(--font-sans);
+}

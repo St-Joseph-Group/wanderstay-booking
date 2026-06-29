@@ -3,7 +3,7 @@ import { CategoryRow } from "@/components/category-row";
 import { SearchFilters } from "@/components/search-filters";
 import { SortSelect } from "@/components/sort-select";
 import { FilterChips } from "@/components/filter-chips";
-import { ListingCard } from "@/components/listing-card";
+import { SearchResults } from "@/components/search-results";
 import { getListings, getUserFavoriteIds, type ListingFilters } from "@/lib/queries";
 import { getSessionProfile } from "@/lib/auth";
 import type { PropertyType } from "@/lib/database.types";
@@ -95,17 +95,11 @@ export default async function SearchPage({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {listings.map((listing, i) => (
-              <ListingCard
-                key={listing.id}
-                listing={listing}
-                isFavorited={favorites.has(listing.id)}
-                isAuthed={isAuthed}
-                priority={i < 4}
-              />
-            ))}
-          </div>
+          <SearchResults
+            listings={listings}
+            favoritedIds={[...favorites]}
+            isAuthed={isAuthed}
+          />
         )}
       </section>
     </div>
