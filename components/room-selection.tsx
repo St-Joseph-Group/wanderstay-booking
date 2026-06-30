@@ -8,8 +8,8 @@ import { DateRangeCalendar, type DateRange } from "@/components/date-range-picke
 import { PriceBreakdownRows } from "@/components/price-breakdown";
 import { Button } from "@/components/ui/button";
 import { computePricing } from "@/lib/pricing";
-import { formatPriceCompact } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { useCurrency } from "@/lib/currency";
 import { cancellationLabel } from "@/lib/listing-meta";
 import { ShieldCheck, Tag, BadgeCheck, Flame } from "lucide-react";
 import type { RoomTypeDetail } from "@/lib/queries";
@@ -41,6 +41,7 @@ export function RoomSelection({
   cancellationPolicy?: string | null;
 }) {
   const router = useRouter();
+  const { format: money } = useCurrency();
   const [range, setRange] = React.useState<DateRange | undefined>();
   const [guests, setGuests] = React.useState(1);
   const [showCal, setShowCal] = React.useState(false);
@@ -89,7 +90,7 @@ export function RoomSelection({
       <div className="flex items-baseline justify-between">
         <p className="text-xl text-ink">
           {multi && <span className="text-base text-muted">from </span>}
-          <span className="font-bold">{formatPriceCompact(minPrice)}</span>{" "}
+          <span className="font-bold">{money(minPrice)}</span>{" "}
           <span className="text-base text-muted">night</span>
         </p>
         {rating !== null && (
@@ -230,7 +231,7 @@ export function RoomSelection({
                 <div className="shrink-0 text-right">
                   <p className="text-sm text-ink">
                     <span className="font-bold">
-                      {formatPriceCompact(rt.price_per_night)}
+                      {money(rt.price_per_night)}
                     </span>
                     <span className="text-muted"> /night</span>
                   </p>

@@ -6,8 +6,8 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import { StarRating } from "@/components/star-rating";
 import { FavoriteButton } from "@/components/favorite-button";
-import { formatPriceCompact } from "@/lib/utils";
 import { listingBadges, socialProof, type Badge } from "@/lib/listing-meta";
+import { useCurrency } from "@/lib/currency";
 import type { ListingCardData } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +28,7 @@ export function ListingCard({
   isAuthed?: boolean;
   priority?: boolean;
 }) {
+  const { format } = useCurrency();
   const photos = listing.photos.length
     ? listing.photos
     : ["https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1200&q=80"];
@@ -142,12 +143,12 @@ export function ListingCard({
         </p>
         <p className="mt-2 flex items-baseline gap-1.5 text-ink">
           <span className="font-display text-lg font-semibold">
-            {formatPriceCompact(listing.price_per_night)}
+            {format(listing.price_per_night)}
           </span>
           <span className="text-sm text-muted">night</span>
           {drop != null && (
             <span className="ml-auto rounded-md bg-accent-soft px-1.5 py-0.5 text-[11px] font-semibold text-accent-dark">
-              ↓ {formatPriceCompact(drop)} since saved
+              ↓ {format(drop)} since saved
             </span>
           )}
         </p>

@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Globe } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { UserMenu } from "@/components/user-menu";
 import { HeaderSearch } from "@/components/header-search";
+import { CurrencySelect } from "@/components/currency-select";
 import { getSessionProfile } from "@/lib/auth";
 
 export async function Header() {
@@ -26,9 +26,7 @@ export async function Header() {
           >
             {profile?.is_host ? "Switch to hosting" : "Wanderstay your home"}
           </Link>
-          <button className="hidden h-10 w-10 items-center justify-center rounded-full hover:bg-neutral-100 lg:flex">
-            <Globe className="h-4 w-4 text-ink" />
-          </button>
+          <CurrencySelect />
           <UserMenu profile={profile} />
         </div>
       </div>

@@ -4,9 +4,10 @@ import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { getRecentlyViewed, type RecentItem } from "@/lib/recently-viewed";
-import { formatPriceCompact } from "@/lib/utils";
+import { useCurrency } from "@/lib/currency";
 
 export function RecentlyViewed() {
+  const { format } = useCurrency();
   const [items, setItems] = React.useState<RecentItem[]>([]);
   React.useEffect(() => {
     setItems(getRecentlyViewed());
@@ -43,9 +44,7 @@ export function RecentlyViewed() {
               </p>
               <p className="line-clamp-1 text-xs text-muted">{it.title}</p>
               <p className="mt-1 text-sm text-ink">
-                <span className="font-semibold">
-                  {formatPriceCompact(it.price)}
-                </span>{" "}
+                <span className="font-semibold">{format(it.price)}</span>{" "}
                 <span className="text-muted">night</span>
               </p>
             </div>
