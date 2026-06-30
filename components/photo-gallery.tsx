@@ -16,22 +16,31 @@ export function PhotoGallery({
   const [open, setOpen] = React.useState(false);
   const [active, setActive] = React.useState(0);
   const list = photos.length ? photos : [FALLBACK];
+  const single = list.length === 1;
 
   return (
     <>
-      <div className="relative grid h-[55vh] max-h-[480px] grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-2xl">
+      <div
+        className={
+          "relative grid h-[55vh] max-h-[480px] gap-2 overflow-hidden rounded-2xl " +
+          (single ? "grid-cols-1" : "grid-cols-4 grid-rows-2")
+        }
+      >
         <button
           onClick={() => {
             setActive(0);
             setOpen(true);
           }}
-          className="relative col-span-2 row-span-2 cursor-pointer"
+          className={
+            "relative cursor-pointer " +
+            (single ? "col-span-1" : "col-span-2 row-span-2")
+          }
         >
           <Image
             src={list[0]}
             alt={title}
             fill
-            sizes="50vw"
+            sizes={single ? "100vw" : "50vw"}
             className="object-cover transition-opacity hover:opacity-95"
             priority
           />
@@ -44,30 +53,44 @@ export function PhotoGallery({
             </>
           )}
         </button>
-        {[1, 2, 3, 4].map((i) => (
+
+        {!single &&
+          [1, 2, 3, 4].map((i) => (
+            <button
+              key={i}
+              onClick={() => {
+                setActive(i % list.length);
+                setOpen(true);
+              }}
+              className="relative hidden cursor-pointer sm:block"
+            >
+              <Image
+                src={list[i % list.length]}
+                alt={`${title} photo ${i + 1}`}
+                fill
+                sizes="25vw"
+                className="object-cover transition-opacity hover:opacity-95"
+              />
+            </button>
+          ))}
+
+        {single ? (
+          <>
+            <span className="absolute left-4 top-4 rounded-md bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent-dark shadow-sm">
+              More photos coming soon
+            </span>
+            <span className="absolute bottom-4 right-4 rounded-lg border border-line bg-white/95 px-3 py-1.5 text-xs font-semibold text-ink shadow">
+              1 photo available
+            </span>
+          </>
+        ) : (
           <button
-            key={i}
-            onClick={() => {
-              setActive(i % list.length);
-              setOpen(true);
-            }}
-            className="relative hidden cursor-pointer sm:block"
+            onClick={() => setOpen(true)}
+            className="absolute bottom-4 right-4 flex items-center gap-2 rounded-lg border border-ink bg-white px-3.5 py-2 text-sm font-semibold text-ink shadow hover:bg-neutral-50"
           >
-            <Image
-              src={list[i % list.length]}
-              alt={`${title} photo ${i + 1}`}
-              fill
-              sizes="25vw"
-              className="object-cover transition-opacity hover:opacity-95"
-            />
+            <Grip className="h-4 w-4" /> Show all {list.length} photos
           </button>
-        ))}
-        <button
-          onClick={() => setOpen(true)}
-          className="absolute bottom-4 right-4 flex items-center gap-2 rounded-lg border border-ink bg-white px-3.5 py-2 text-sm font-semibold text-ink shadow hover:bg-neutral-50"
-        >
-          <Grip className="h-4 w-4" /> Show all photos
-        </button>
+        )}
       </div>
 
       {open && (

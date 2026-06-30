@@ -66,14 +66,14 @@ export function HeaderSearch() {
             if (!visible) setRender(false);
           }}
           className={cn(
-            "fixed inset-0 z-[70] flex items-start justify-center p-4 pt-20 transition-opacity duration-200 ease-out",
+            "fixed inset-0 z-[70] flex items-start justify-center p-4 pt-20 backdrop-blur-md transition-opacity duration-200 ease-out",
             visible ? "bg-black/40 opacity-100" : "bg-black/0 opacity-0"
           )}
         >
           <div
             onClick={(e) => e.stopPropagation()}
             className={cn(
-              "relative w-full max-w-3xl rounded-2xl border border-line bg-surface p-6 shadow-pop transition-all duration-200 ease-out",
+              "relative w-full max-w-2xl rounded-2xl border border-line bg-surface p-6 shadow-pop transition-all duration-200 ease-out",
               visible
                 ? "translate-y-0 scale-100 opacity-100"
                 : "-translate-y-2 scale-[0.98] opacity-0"

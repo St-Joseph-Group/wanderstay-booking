@@ -11,7 +11,7 @@ import { computePricing } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 import { useCurrency } from "@/lib/currency";
 import { cancellationLabel } from "@/lib/listing-meta";
-import { ShieldCheck, Tag, BadgeCheck, Flame } from "lucide-react";
+import { ShieldCheck, Tag, BadgeCheck, Flame, X } from "lucide-react";
 import type { RoomTypeDetail } from "@/lib/queries";
 
 /** Free rooms of a type for a date range = instances with no overlapping booking. */
@@ -148,27 +148,47 @@ export function RoomSelection({
       </div>
 
       {showCal && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-[min(640px,92vw)] rounded-2xl border border-neutral-200 bg-white p-3 shadow-pop">
-          <div className="overflow-x-auto">
-            <DateRangeCalendar
-              range={range}
-              onChange={setRange}
-              numberOfMonths={months}
-            />
-          </div>
-          <div className="mt-2 flex items-center justify-between border-t border-neutral-100 pt-2">
-            <button
-              onClick={() => setRange(undefined)}
-              className="text-sm font-semibold text-ink underline"
-            >
-              Clear dates
-            </button>
-            <button
-              onClick={() => setShowCal(false)}
-              className="rounded-lg bg-ink px-4 py-1.5 text-sm font-semibold text-white"
-            >
-              Done
-            </button>
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+          onClick={() => setShowCal(false)}
+        >
+          <div
+            className="animate-fade-in w-[min(680px,94vw)] rounded-2xl border border-line bg-surface p-4 shadow-pop"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="font-display text-lg font-semibold text-ink">
+                Select dates
+              </h3>
+              <button
+                onClick={() => setShowCal(false)}
+                aria-label="Close"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-ink hover:bg-neutral-100"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="flex justify-center overflow-x-auto">
+              <DateRangeCalendar
+                range={range}
+                onChange={setRange}
+                numberOfMonths={months}
+              />
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
+              <button
+                onClick={() => setRange(undefined)}
+                className="text-sm font-semibold text-ink underline"
+              >
+                Clear dates
+              </button>
+              <button
+                onClick={() => setShowCal(false)}
+                className="rounded-lg bg-ink px-4 py-1.5 text-sm font-semibold text-white"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}

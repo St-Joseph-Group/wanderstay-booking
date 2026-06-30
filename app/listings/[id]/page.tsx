@@ -7,8 +7,6 @@ import {
   BedDouble,
   Bath,
   DoorOpen,
-  Share,
-  Heart,
   Check,
   ShieldCheck,
   Quote,
@@ -21,6 +19,7 @@ import { StarRating } from "@/components/star-rating";
 import { RecordView } from "@/components/record-view";
 import { PropertyScore } from "@/components/property-score";
 import { HostCard } from "@/components/host-card";
+import { ShareSave } from "@/components/share-save";
 import { getListingById, getUserFavoriteIds } from "@/lib/queries";
 import { getSessionProfile } from "@/lib/auth";
 import { AMENITY_ICONS, PROPERTY_TYPE_LABELS } from "@/lib/constants";
@@ -115,14 +114,12 @@ export default async function ListingPage({
             <ShieldCheck className="h-3.5 w-3.5" />
             {cancellationLabel(listing.cancellation_policy)}
           </span>
-          <div className="ml-auto hidden items-center gap-4 sm:flex">
-            <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink underline">
-              <Share className="h-4 w-4" /> Share
-            </span>
-            <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink underline">
-              <Heart className="h-4 w-4" /> Save
-            </span>
-          </div>
+          <ShareSave
+            listingId={listing.id}
+            title={listing.title}
+            initialSaved={favorites.has(listing.id)}
+            isAuthed={!!session}
+          />
         </div>
       </div>
 
