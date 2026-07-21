@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { SearchX } from "lucide-react";
 import { CategoryRow } from "@/components/category-row";
 import { SearchFilters } from "@/components/search-filters";
@@ -41,6 +42,23 @@ function buildFilters(sp: SP): ListingFilters {
   };
 }
 
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<SP>;
+}): Promise<Metadata> {
+  const sp = await searchParams;
+  const q = typeof sp.q === "string" ? sp.q.trim() : "";
+  const type = typeof sp.type === "string" ? sp.type : "";
+  const what = type ? `${type.charAt(0).toUpperCase()}${type.slice(1)}s` : "Stays";
+  const where = q ? ` in ${q}` : "";
+  const title = `${what}${where} · Wanderstay`;
+  return {
+    title,
+    description: `Browse ${what.toLowerCase()}${where} — a considered collection of places to stay on Wanderstay.`,
+  };
+}
+
 export default async function SearchPage({
   searchParams,
 }: {
@@ -63,9 +81,9 @@ export default async function SearchPage({
 
   return (
     <div>
-      <section className="sticky top-16 z-30 border-b border-line bg-canvas/95 backdrop-blur">
+      <section className="sticky top-[4.5rem] z-30 border-b border-hairline bg-canvas/95 backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 py-1">
             <div className="min-w-0 flex-1">
               <CategoryRow query={query} />
             </div>
@@ -74,25 +92,28 @@ export default async function SearchPage({
               <SearchFilters query={query} />
             </div>
           </div>
-          <div className="pb-3 pt-1">
+          <div className="pb-3.5 pt-1.5">
             <FilterChips query={query} />
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mb-5 flex items-baseline justify-between">
-          <h1 className="text-xl font-bold text-ink">{heading}</h1>
-          <p className="text-sm text-muted">
-            {listings.length} {listings.length === 1 ? "stay" : "stays"}
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mb-8 flex items-baseline justify-between">
+          <div>
+            <p className="overline-sm text-accent-dark">The Collection</p>
+            <h1 className="mt-2 font-display text-3xl text-ink">{heading}</h1>
+          </div>
+          <p className="overline-sm text-muted">
+            {listings.length} {listings.length === 1 ? "residence" : "residences"}
           </p>
         </div>
 
         {listings.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-300 py-20 text-center">
-            <SearchX className="mb-3 h-10 w-10 text-muted" />
-            <p className="text-lg font-semibold text-ink">No stays found</p>
-            <p className="mt-1 max-w-sm text-sm text-muted">
+          <div className="flex flex-col items-center justify-center rounded-sm border border-hairline py-24 text-center">
+            <SearchX className="mb-4 h-9 w-9 text-muted" strokeWidth={1.5} />
+            <p className="font-display text-2xl text-ink">No residences found</p>
+            <p className="mt-2 max-w-sm text-sm text-muted">
               Try removing some filters or searching a different destination.
             </p>
           </div>

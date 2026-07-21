@@ -34,16 +34,18 @@ export function CurrencySelect() {
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label="Change currency"
-        className="hidden h-10 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-ink hover:bg-neutral-100 lg:flex"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className="hidden h-10 items-center gap-1.5 rounded-full px-3.5 text-ink transition-colors hover:bg-brand/[0.06] lg:flex"
       >
-        <Globe className="h-4 w-4" />
-        {code}
+        <Globe className="h-4 w-4" strokeWidth={1.75} />
+        <span className="text-sm font-medium">{code}</span>
         <ChevronDown className="h-3.5 w-3.5 text-muted" />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-lg border border-line bg-surface py-1 shadow-pop">
-          <p className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
+        <div className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-2xl border border-hairline bg-surface py-1.5 shadow-pop">
+          <p className="overline-sm px-3 py-2 text-muted">
             Display currency
           </p>
           {CURRENCIES.map((c) => (
@@ -54,7 +56,7 @@ export function CurrencySelect() {
                 setOpen(false);
               }}
               className={cn(
-                "flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-neutral-100",
+                "flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-black/5",
                 c === code ? "font-semibold text-ink" : "text-ink"
               )}
             >

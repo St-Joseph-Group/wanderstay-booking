@@ -10,21 +10,23 @@ export async function Header() {
   const profile = session?.profile ?? null;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-canvas/95 backdrop-blur">
-      <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 border-b border-hairline bg-canvas/95 backdrop-blur">
+      <div className="mx-auto grid h-[4.5rem] max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-4 sm:px-6 lg:gap-8 lg:px-8">
         <div className="justify-self-start">
           <Logo />
         </div>
 
-        {/* Curated search trigger → expands the full search in a modal */}
-        <HeaderSearch />
+        {/* Inviting search bar → expands the full search in a modal */}
+        <div className="mx-auto hidden w-full max-w-md md:block">
+          <HeaderSearch />
+        </div>
 
         <div className="flex items-center gap-2 justify-self-end">
           <Link
             href={profile?.is_host ? "/host" : "/host/become"}
-            className="hidden rounded-full px-4 py-2.5 text-sm font-semibold text-ink hover:bg-neutral-100 lg:block"
+            className="hidden rounded-full px-4 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-brand/[0.06] lg:block"
           >
-            {profile?.is_host ? "Switch to hosting" : "Wanderstay your home"}
+            {profile?.is_host ? "Hosting" : "List your home"}
           </Link>
           <CurrencySelect />
           <UserMenu profile={profile} />

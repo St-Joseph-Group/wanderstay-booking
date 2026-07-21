@@ -61,7 +61,7 @@ export function SearchMap({ listings }: { listings: ListingCardData[] }) {
   return (
     <div
       ref={ref}
-      className="h-[70vh] w-full overflow-hidden rounded-lg border border-line"
+      className="h-[70vh] w-full overflow-hidden rounded-lg border border-hairline"
     />
   );
 }

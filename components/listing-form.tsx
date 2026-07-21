@@ -96,7 +96,7 @@ export function ListingForm({
           {photos.map((url, i) => (
             <div
               key={url}
-              className="group relative aspect-square overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100"
+              className="group relative aspect-square overflow-hidden rounded-xl border border-hairline bg-neutral-100"
             >
               <Image src={url} alt="" fill sizes="200px" className="object-cover" />
               {i === 0 && (
@@ -113,7 +113,7 @@ export function ListingForm({
               </button>
             </div>
           ))}
-          <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-neutral-300 text-muted hover:border-ink hover:text-ink">
+          <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-hairline text-muted hover:border-ink hover:text-ink">
             {uploading ? (
               <Loader2 className="h-6 w-6 animate-spin" />
             ) : (
@@ -153,7 +153,7 @@ export function ListingForm({
               id="property_type"
               name="property_type"
               defaultValue={initial?.property_type ?? "apartment"}
-              className="h-11 w-full rounded-lg border border-neutral-300 bg-white px-3 text-sm focus:border-ink focus:outline-none"
+              className="h-11 w-full rounded-lg border border-hairline bg-white px-3 text-sm focus:border-ink focus:outline-none"
             >
               {PROPERTY_TYPES.map((t) => (
                 <option key={t.value} value={t.value}>
@@ -265,7 +265,7 @@ export function ListingForm({
                 "rounded-full border px-3.5 py-2 text-sm transition-colors",
                 amenities.includes(a)
                   ? "border-ink bg-ink text-white"
-                  : "border-neutral-300 text-ink hover:border-ink"
+                  : "border-hairline text-ink hover:border-ink"
               )}
             >
               {a}
@@ -280,7 +280,7 @@ export function ListingForm({
         </p>
       )}
 
-      <div className="flex flex-col gap-3 border-t border-neutral-200 pt-6 sm:flex-row sm:justify-end">
+      <div className="flex flex-col gap-3 border-t border-hairline pt-6 sm:flex-row sm:justify-end">
         <SubmitButton
           variant="outline"
           onClick={() => setStatus("draft")}

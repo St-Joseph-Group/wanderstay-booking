@@ -5,8 +5,10 @@ import type { PriceBreakdown } from "@/lib/pricing";
 
 export function PriceBreakdownRows({
   breakdown,
+  taxLabel = "Taxes",
 }: {
   breakdown: PriceBreakdown;
+  taxLabel?: string;
 }) {
   const { format } = useCurrency();
   if (breakdown.nights === 0) return null;
@@ -22,9 +24,12 @@ export function PriceBreakdownRows({
         <Row label="Cleaning fee" value={format(breakdown.cleaningFee)} />
       )}
       <Row label="Wanderstay service fee" value={format(breakdown.serviceFee)} />
-      <div className="mt-3 flex items-center justify-between border-t border-line pt-3 font-bold">
-        <span>Total</span>
-        <span>{format(breakdown.total)}</span>
+      {breakdown.tax > 0 && (
+        <Row label={taxLabel} value={format(breakdown.tax)} />
+      )}
+      <div className="mt-3 flex items-center justify-between border-t border-hairline pt-3">
+        <span className="overline-sm text-ink">Total</span>
+        <span className="numeral text-base text-ink">{format(breakdown.total)}</span>
       </div>
     </div>
   );

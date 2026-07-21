@@ -1,7 +1,6 @@
-// Derived card metadata: badges + social-proof lines.
-// Badges come from real data (host flags, price/rating, recency). Social-proof
-// numbers are deterministic + illustrative where the platform has no real
-// signal yet (views/weekend demand) — stable per listing so they never flicker.
+// Derived card metadata: badges from real data (host flags, price/rating,
+// recency). deterministicInt is a stable per-seed helper still used for the
+// listing-page location "minutes away" fallbacks.
 
 export type Badge = { label: string; tone: "accent" | "dark" | "soft" };
 
@@ -38,18 +37,6 @@ export function listingBadges(listing: {
   if (listing.isVerifiedHost && !listing.isSuperhost)
     badges.push({ label: "Verified", tone: "soft" });
   return badges;
-}
-
-// One stable, lightly-illustrative urgency/social-proof line per listing.
-export function socialProof(id: string): string {
-  const variants = [
-    `Booked ${deterministicInt(id + "b", 4, 18)}× this week`,
-    `Viewed ${deterministicInt(id + "v", 20, 90)}+ times today`,
-    `${deterministicInt(id + "w", 70, 95)}% booked this weekend`,
-    `Only ${deterministicInt(id + "l", 1, 3)} left for popular dates`,
-    `In high demand right now`,
-  ];
-  return variants[hash(id + "sp") % variants.length];
 }
 
 export function cancellationLabel(policy: string | null | undefined): string {

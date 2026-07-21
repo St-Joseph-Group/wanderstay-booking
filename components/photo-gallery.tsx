@@ -47,7 +47,7 @@ export function PhotoGallery({
           {headline && (
             <>
               <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-transparent" />
-              <span className="pointer-events-none absolute bottom-4 left-4 text-left font-display text-xl font-semibold text-white drop-shadow sm:text-2xl">
+              <span className="overline pointer-events-none absolute bottom-4 left-4 text-left text-white drop-shadow">
                 {headline}
               </span>
             </>
@@ -76,17 +76,17 @@ export function PhotoGallery({
 
         {single ? (
           <>
-            <span className="absolute left-4 top-4 rounded-md bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent-dark shadow-sm">
+            <span className="overline-sm absolute left-4 top-4 rounded-sm bg-canvas/95 px-2.5 py-1.5 text-accent-dark ring-1 ring-hairline">
               More photos coming soon
             </span>
-            <span className="absolute bottom-4 right-4 rounded-lg border border-line bg-white/95 px-3 py-1.5 text-xs font-semibold text-ink shadow">
+            <span className="overline-sm absolute bottom-4 right-4 rounded-sm bg-canvas/95 px-3 py-1.5 text-ink ring-1 ring-hairline">
               1 photo available
             </span>
           </>
         ) : (
           <button
             onClick={() => setOpen(true)}
-            className="absolute bottom-4 right-4 flex items-center gap-2 rounded-lg border border-ink bg-white px-3.5 py-2 text-sm font-semibold text-ink shadow hover:bg-neutral-50"
+            className="overline-sm absolute bottom-4 right-4 flex items-center gap-2 rounded-sm bg-canvas/95 px-4 py-2.5 text-ink ring-1 ring-ink/80 transition-colors hover:bg-canvas"
           >
             <Grip className="h-4 w-4" /> Show all {list.length} photos
           </button>

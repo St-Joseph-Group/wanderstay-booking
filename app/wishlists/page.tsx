@@ -17,7 +17,7 @@ export default async function WishlistsPage() {
       <h1 className="mb-6 text-3xl font-bold text-ink">Wishlists</h1>
 
       {listings.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-300 py-20 text-center">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-hairline py-20 text-center">
           <Heart className="mb-3 h-10 w-10 text-muted" />
           <p className="text-lg font-semibold text-ink">
             Nothing saved yet

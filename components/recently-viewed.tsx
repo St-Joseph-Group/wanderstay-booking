@@ -16,7 +16,7 @@ export function RecentlyViewed() {
   if (items.length < 2) return null;
 
   return (
-    <section className="mx-auto max-w-7xl border-t border-line px-4 py-8 sm:px-6 lg:px-8">
+    <section className="mx-auto max-w-7xl border-t border-hairline px-4 py-8 sm:px-6 lg:px-8">
       <h2 className="mb-4 text-xl font-bold text-ink">
         Continue where you left off
       </h2>
@@ -25,7 +25,7 @@ export function RecentlyViewed() {
           <Link
             key={it.id}
             href={`/listings/${it.id}`}
-            className="group flex w-64 shrink-0 gap-3 rounded-lg border border-line bg-surface p-2.5 shadow-card transition-shadow hover:shadow-float"
+            className="group flex w-64 shrink-0 gap-3 rounded-lg border border-hairline bg-surface p-2.5 shadow-card transition-shadow hover:shadow-float"
           >
             <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-neutral-100">
               {it.photo && (

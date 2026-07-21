@@ -24,6 +24,7 @@ import { PriceBreakdownRows } from "@/components/price-breakdown";
 import { getListingById, type RoomTypeDetail } from "@/lib/queries";
 import { getSessionProfile } from "@/lib/auth";
 import { computePricing } from "@/lib/pricing";
+import { taxRuleFor } from "@/lib/tax";
 
 function freeRooms(rt: RoomTypeDetail, from: Date, to: Date): number {
   const booked = new Set<string>();
@@ -76,11 +77,13 @@ export default async function CheckoutPage({
   const soldOut = datesValid && freeRooms(rt!, ci, co) === 0;
   const tooMany = guests > rt!.max_guests;
 
+  const taxRule = taxRuleFor(listing.country);
   const pricing = computePricing(
     {
       pricePerNight: rt!.price_per_night,
       cleaningFee: rt!.cleaning_fee,
       serviceFeePct: rt!.serviceFeePct,
+      taxRatePct: taxRule.ratePct,
     },
     ci,
     co
@@ -180,7 +183,7 @@ export default async function CheckoutPage({
                 {stay.map((s) => (
                   <div
                     key={s.label}
-                    className="flex items-start gap-3 rounded-xl border border-line bg-surface p-4 shadow-card"
+                    className="flex items-start gap-3 rounded-xl border border-hairline bg-surface p-4 shadow-card"
                   >
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent-dark">
                       <s.icon className="h-5 w-5" />
@@ -212,7 +215,7 @@ export default async function CheckoutPage({
             />
 
             {/* Cancellation policy */}
-            <section className="rounded-xl border border-line bg-surface p-5 shadow-card">
+            <section className="rounded-xl border border-hairline bg-surface p-5 shadow-card">
               <h2 className="mb-2 text-lg font-bold text-ink">
                 Cancellation policy
               </h2>
@@ -229,7 +232,7 @@ export default async function CheckoutPage({
           {/* Right: summary */}
           <div className="order-1 lg:order-2">
             <div className="space-y-5 lg:sticky lg:top-24">
-              <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-card">
+              <div className="overflow-hidden rounded-2xl border border-hairline bg-surface shadow-card">
                 <div className="relative h-44 w-full bg-neutral-100">
                   <Image
                     src={listing.photos[0]}
@@ -265,12 +268,12 @@ export default async function CheckoutPage({
                   <h3 className="mb-4 text-lg font-bold text-ink">
                     Price details
                   </h3>
-                  <PriceBreakdownRows breakdown={pricing} />
+                  <PriceBreakdownRows breakdown={pricing} taxLabel={taxRule.label} />
                 </div>
               </div>
 
               {/* Trust + accepted payments */}
-              <div className="rounded-2xl border border-line bg-surface p-5 shadow-card">
+              <div className="rounded-2xl border border-hairline bg-surface p-5 shadow-card">
                 <ul className="space-y-2.5 text-sm text-ink">
                   <li className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-accent-dark" /> Secure
@@ -289,12 +292,12 @@ export default async function CheckoutPage({
                     won&apos;t be charged until the booking is confirmed
                   </li>
                 </ul>
-                <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-4">
+                <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-hairline pt-4">
                   <span className="text-xs text-muted">We accept</span>
                   {["Visa", "Mastercard", "GCash", "Maya"].map((p) => (
                     <span
                       key={p}
-                      className="rounded-md border border-line bg-canvas px-2 py-1 text-xs font-semibold text-ink"
+                      className="rounded-md border border-hairline bg-canvas px-2 py-1 text-xs font-semibold text-ink"
                     >
                       {p}
                     </span>

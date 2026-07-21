@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Heart } from "lucide-react";
+import { Bookmark } from "lucide-react";
 import { toggleFavorite } from "@/lib/actions/favorites";
 import { toast } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
@@ -48,21 +48,28 @@ export function FavoriteButton({
     <div className="group/fav absolute right-3 top-3 z-10">
       <button
         onClick={onClick}
-        aria-label={favorited ? "Remove from wishlist" : "Save to wishlist"}
-        className="block transition-transform hover:scale-110 active:scale-95"
+        aria-label={
+          favorited ? "Remove from your collection" : "Save to your collection"
+        }
+        className={cn(
+          "flex items-center justify-center rounded-full bg-canvas/90 shadow-sm backdrop-blur transition-all hover:bg-canvas active:scale-95",
+          size === "sm" ? "h-8 w-8" : "h-9 w-9"
+        )}
       >
-        <Heart
+        <Bookmark
           onAnimationEnd={() => setJustSaved(false)}
           className={cn(
-            size === "sm" ? "h-6 w-6" : "h-7 w-7",
-            "stroke-white stroke-2 drop-shadow",
+            size === "sm" ? "h-4 w-4" : "h-[1.15rem] w-[1.15rem]",
             justSaved && "animate-saved-pop",
-            favorited ? "fill-accent text-accent" : "fill-black/40"
+            favorited
+              ? "fill-accent text-accent-dark"
+              : "fill-transparent text-ink"
           )}
+          strokeWidth={1.75}
         />
       </button>
-      <span className="pointer-events-none absolute right-0 top-full mt-1 hidden whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs font-medium text-white shadow-pop group-hover/fav:block">
-        {favorited ? "Saved" : "Save"}
+      <span className="overline-sm pointer-events-none absolute right-0 top-full mt-1.5 hidden whitespace-nowrap rounded-sm bg-ink px-2 py-1 text-white shadow-pop group-hover/fav:block">
+        {favorited ? "In your collection" : "Save"}
       </span>
     </div>
   );
