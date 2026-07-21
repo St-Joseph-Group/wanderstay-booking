@@ -55,7 +55,7 @@ export default async function HostDashboardPage() {
       <section className="mb-12">
         <h2 className="mb-4 text-xl font-bold text-ink">Your listings</h2>
         {listings.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-neutral-300 py-16 text-center">
+          <div className="rounded-2xl border border-dashed border-hairline py-16 text-center">
             <Home className="mx-auto mb-3 h-10 w-10 text-muted" />
             <p className="font-semibold text-ink">No listings yet</p>
             <p className="mt-1 text-sm text-muted">
@@ -70,7 +70,7 @@ export default async function HostDashboardPage() {
             {listings.map((l) => (
               <div
                 key={l.id}
-                className="overflow-hidden rounded-2xl border border-neutral-200"
+                className="overflow-hidden rounded-2xl border border-hairline"
               >
                 <div className="relative aspect-[4/3] bg-neutral-100">
                   {l.photo && (
@@ -128,11 +128,11 @@ export default async function HostDashboardPage() {
       <section>
         <h2 className="mb-4 text-xl font-bold text-ink">Incoming bookings</h2>
         {activeBookings.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-neutral-300 py-12 text-center text-sm text-muted">
+          <div className="rounded-2xl border border-dashed border-hairline py-12 text-center text-sm text-muted">
             No bookings yet. They&apos;ll show up here when guests reserve.
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-neutral-200">
+          <div className="overflow-hidden rounded-2xl border border-hairline">
             <table className="w-full text-sm">
               <thead className="bg-neutral-50 text-left text-muted">
                 <tr>
@@ -191,7 +191,7 @@ function Stat({
   value: string;
 }) {
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-neutral-200 p-5">
+    <div className="flex items-center gap-4 rounded-2xl border border-hairline p-5">
       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-50 text-brand">
         <Icon className="h-6 w-6" />
       </div>

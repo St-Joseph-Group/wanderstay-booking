@@ -37,7 +37,10 @@ export function CategoryRow({ query }: { query: string }) {
   }
 
   return (
-    <div className="no-scrollbar flex gap-7 overflow-x-auto">
+    <nav
+      aria-label="Browse by residence type"
+      className="no-scrollbar flex items-center gap-7 overflow-x-auto py-5"
+    >
       {categories.map((c) => {
         const isActive = active === c.type;
         const Icon = c.icon;
@@ -46,17 +49,18 @@ export function CategoryRow({ query }: { query: string }) {
             key={c.label}
             href={hrefFor(c.type)}
             className={cn(
-              "flex min-w-fit flex-col items-center gap-2 border-b-2 pb-3 pt-1 text-xs font-medium transition-colors",
-              isActive
-                ? "border-ink text-ink"
-                : "border-transparent text-muted hover:border-neutral-300 hover:text-ink"
+              "group flex min-w-fit items-center gap-2 whitespace-nowrap transition-colors",
+              isActive ? "text-accent-dark" : "text-muted hover:text-ink"
             )}
           >
-            <Icon className="h-6 w-6" strokeWidth={1.6} />
-            {c.label}
+            <Icon
+              className="h-[1.15rem] w-[1.15rem]"
+              strokeWidth={isActive ? 1.75 : 1.5}
+            />
+            <span className="overline-sm">{c.label}</span>
           </Link>
         );
       })}
-    </div>
+    </nav>
   );
 }

@@ -37,31 +37,29 @@ export function PropertyScore({
         : "Premium";
 
   return (
-    <div className="rounded-lg border border-line bg-surface p-5 shadow-card">
-      <div className="flex items-center justify-between">
-        <h3 className="flex items-center gap-2 text-lg font-bold text-ink">
-          <Award className="h-5 w-5 text-accent-dark" /> Property score
+    <div className="rounded-2xl border border-hairline bg-surface p-6">
+      <div className="flex items-center justify-between border-b border-hairline pb-4">
+        <h3 className="overline flex items-center gap-2 text-ink">
+          <Award className="h-4 w-4 text-accent-dark" strokeWidth={1.75} /> Property score
         </h3>
-        <div className="text-right">
-          <span className="font-display text-3xl font-bold text-ink">
-            {score}
-          </span>
-          <span className="text-muted"> / 100</span>
+        <div className="flex items-baseline text-right">
+          <span className="numeral text-3xl text-ink">{score}</span>
+          <span className="overline-sm ml-1 text-muted">/ 100</span>
         </div>
       </div>
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-5 space-y-4">
         {cats.map((c) => (
           <div key={c.label}>
-            <div className="mb-1 flex justify-between text-sm">
-              <span className="text-ink">{c.label}</span>
-              <span className="font-semibold text-ink">
+            <div className="mb-1.5 flex justify-between">
+              <span className="overline-sm text-muted">{c.label}</span>
+              <span className="numeral text-sm text-ink">
                 {c.value.toFixed(1)}
               </span>
             </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
+            <div className="h-px w-full overflow-hidden bg-hairline">
               <div
-                className="h-full rounded-full bg-accent"
+                className="h-full bg-accent"
                 style={{ width: `${(c.value / 5) * 100}%` }}
               />
             </div>
@@ -69,18 +67,18 @@ export function PropertyScore({
         ))}
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2 text-xs">
-        <span className="rounded-md bg-accent-soft px-2 py-1 font-semibold text-accent-dark">
-          Value: {valueTag}
+      <div className="mt-5 flex flex-wrap gap-2">
+        <span className="overline-sm rounded-sm border border-hairline px-2.5 py-1.5 text-accent-dark">
+          Value · {valueTag}
         </span>
         {(subRatings.cleanliness ?? 0) >= 4.6 && (
-          <span className="rounded-md bg-brand/5 px-2 py-1 font-semibold text-brand">
-            Cleanliness: Top-rated
+          <span className="overline-sm rounded-sm border border-hairline px-2.5 py-1.5 text-ink">
+            Cleanliness · Top-rated
           </span>
         )}
         {(rating ?? 0) >= 4.6 && (
-          <span className="rounded-md bg-brand/5 px-2 py-1 font-semibold text-brand">
-            Guest satisfaction: High
+          <span className="overline-sm rounded-sm border border-hairline px-2.5 py-1.5 text-ink">
+            Satisfaction · High
           </span>
         )}
       </div>

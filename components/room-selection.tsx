@@ -3,15 +3,17 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { format, parseISO } from "date-fns";
-import { Minus, Plus, Star, Users, BedDouble, Bath, Ruler } from "lucide-react";
-import { DateRangeCalendar, type DateRange } from "@/components/date-range-picker";
+import { Minus, Plus, Users, BedDouble, Bath, Ruler } from "lucide-react";
+import { type DateRange } from "@/components/date-range-picker";
+import { PremiumDatePicker } from "@/components/premium-date-picker";
 import { PriceBreakdownRows } from "@/components/price-breakdown";
 import { Button } from "@/components/ui/button";
 import { computePricing } from "@/lib/pricing";
+import { taxRuleFor } from "@/lib/tax";
 import { cn } from "@/lib/utils";
 import { useCurrency } from "@/lib/currency";
 import { cancellationLabel } from "@/lib/listing-meta";
-import { ShieldCheck, Tag, BadgeCheck, Flame, X } from "lucide-react";
+import { ShieldCheck, Tag, BadgeCheck } from "lucide-react";
 import type { RoomTypeDetail } from "@/lib/queries";
 
 /** Free rooms of a type for a date range = instances with no overlapping booking. */
@@ -32,6 +34,7 @@ export function RoomSelection({
   reviewCount,
   isAuthed,
   cancellationPolicy,
+  country,
 }: {
   listingId: string;
   roomTypes: RoomTypeDetail[];
@@ -39,25 +42,56 @@ export function RoomSelection({
   reviewCount: number;
   isAuthed: boolean;
   cancellationPolicy?: string | null;
+  country?: string | null;
 }) {
   const router = useRouter();
   const { format: money } = useCurrency();
+  const taxRule = taxRuleFor(country);
   const [range, setRange] = React.useState<DateRange | undefined>();
   const [guests, setGuests] = React.useState(1);
   const [showCal, setShowCal] = React.useState(false);
 
-  // Show two months on wider screens so an upcoming, fully-available month is
-  // always visible (otherwise late in a month the current view looks empty).
-  const [months, setMonths] = React.useState(1);
-  React.useEffect(() => {
-    const mq = window.matchMedia("(min-width: 640px)");
-    const update = () => setMonths(mq.matches ? 2 : 1);
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
-  }, []);
-
   const minPrice = Math.min(...roomTypes.map((r) => r.price_per_night));
+  // Cheapest room type stands in for pricing/availability shown in the date
+  // picker before the guest has chosen a specific room below.
+  const referenceRoomType =
+    roomTypes.find((r) => r.price_per_night === minPrice) ?? roomTypes[0];
+
+  // A date is fully blocked only when every room type is sold out for it.
+  // Bounded to the breakpoints formed by actual booking edges, not a
+  // per-calendar-day scan over an open-ended future range.
+  const blockedRanges = React.useMemo(() => {
+    const points = new Set<number>();
+    for (const rt of roomTypes) {
+      for (const b of rt.bookings) {
+        points.add(parseISO(b.check_in).getTime());
+        points.add(parseISO(b.check_out).getTime());
+      }
+    }
+    const sorted = [...points].sort((a, b) => a - b);
+    const blocked: { from: Date; to: Date }[] = [];
+    let runStart: number | null = null;
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const from = new Date(sorted[i]);
+      const to = new Date(sorted[i + 1]);
+      const allSoldOut = roomTypes.every(
+        (rt) => availableCount(rt, from, to) === 0
+      );
+      if (allSoldOut) {
+        runStart ??= sorted[i];
+      } else if (runStart !== null) {
+        blocked.push({ from: new Date(runStart), to: from });
+        runStart = null;
+      }
+    }
+    if (runStart !== null) {
+      blocked.push({
+        from: new Date(runStart),
+        to: new Date(sorted[sorted.length - 1]),
+      });
+    }
+    return blocked;
+  }, [roomTypes]);
   const maxCap = Math.max(1, ...roomTypes.map((r) => r.max_guests));
   // A usable stay needs check-out strictly after check-in. react-day-picker
   // sets to === from on the first click, so guard against that 0-night range.
@@ -86,116 +120,101 @@ export function RoomSelection({
   }
 
   return (
-    <div className="relative rounded-2xl border border-neutral-200 bg-white p-5 shadow-card">
-      <div className="flex items-baseline justify-between">
-        <p className="text-xl text-ink">
-          {multi && <span className="text-base text-muted">from </span>}
-          <span className="font-bold">{money(minPrice)}</span>{" "}
-          <span className="text-base text-muted">night</span>
+    <div className="relative rounded-2xl border border-hairline bg-surface p-6 shadow-card">
+      <div className="flex items-baseline justify-between border-b border-hairline pb-4">
+        <p className="flex items-baseline gap-1.5 text-ink">
+          {multi && <span className="overline-sm text-muted">from</span>}
+          <span className="numeral text-2xl">{money(minPrice)}</span>
+          <span className="text-sm text-muted">/ night</span>
         </p>
         {rating !== null && (
-          <span className="inline-flex items-center gap-1 text-sm text-ink">
-            <Star className="h-3.5 w-3.5 fill-current" /> {rating.toFixed(2)}
-            <span className="text-muted">· {reviewCount} reviews</span>
+          <span className="inline-flex items-baseline gap-1 text-sm text-ink">
+            <span aria-hidden className="text-[0.7em] text-accent">◆</span>
+            <span className="numeral">{rating.toFixed(2)}</span>
+            <span className="overline-sm text-muted">· {reviewCount}</span>
           </span>
         )}
       </div>
 
       {/* Shared dates + guests */}
-      <div className="mt-4 overflow-hidden rounded-xl border border-neutral-300">
+      <div className="mt-5 overflow-hidden rounded-sm border border-hairline">
         <div className="grid grid-cols-2">
           <button
             onClick={() => setShowCal((s) => !s)}
-            className="border-r border-neutral-300 px-3 py-2.5 text-left"
+            className="border-r border-hairline px-4 py-3 text-left transition-colors hover:bg-black/[0.02]"
           >
-            <span className="block text-[10px] font-bold uppercase text-ink">Check-in</span>
-            <span className={cn("text-sm", range?.from ? "text-ink" : "text-muted")}>
+            <span className="overline-sm block text-muted">Check-in</span>
+            <span className={cn("mt-0.5 block text-sm", range?.from ? "text-ink" : "text-muted")}>
               {range?.from ? format(range.from, "MMM d, yyyy") : "Add date"}
             </span>
           </button>
-          <button onClick={() => setShowCal((s) => !s)} className="px-3 py-2.5 text-left">
-            <span className="block text-[10px] font-bold uppercase text-ink">Checkout</span>
-            <span className={cn("text-sm", hasDates ? "text-ink" : "text-muted")}>
+          <button onClick={() => setShowCal((s) => !s)} className="px-4 py-3 text-left transition-colors hover:bg-black/[0.02]">
+            <span className="overline-sm block text-muted">Checkout</span>
+            <span className={cn("mt-0.5 block text-sm", hasDates ? "text-ink" : "text-muted")}>
               {hasDates ? format(range!.to!, "MMM d, yyyy") : "Add date"}
             </span>
           </button>
         </div>
-        <div className="flex items-center justify-between border-t border-neutral-300 px-3 py-2.5">
+        <div className="flex items-center justify-between border-t border-hairline px-4 py-3">
           <div>
-            <span className="block text-[10px] font-bold uppercase text-ink">Guests</span>
-            <span className="text-sm text-ink">
+            <span className="overline-sm block text-muted">Guests</span>
+            <span className="mt-0.5 block text-sm text-ink">
               {guests} {guests === 1 ? "guest" : "guests"}
             </span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
             <button
               onClick={() => setGuests((g) => Math.max(1, g - 1))}
               disabled={guests <= 1}
-              className="flex h-7 w-7 items-center justify-center rounded-full border border-neutral-300 disabled:opacity-40"
+              aria-label="Decrease guests"
+              className="flex h-11 w-11 items-center justify-center disabled:opacity-40"
             >
-              <Minus className="h-3.5 w-3.5" />
+              <span className="flex h-7 w-7 items-center justify-center rounded-sm border border-hairline">
+                <Minus className="h-3.5 w-3.5" />
+              </span>
             </button>
-            <span className="w-4 text-center text-sm">{guests}</span>
+            <span className="numeral w-4 text-center text-sm">{guests}</span>
             <button
               onClick={() => setGuests((g) => Math.min(maxCap, g + 1))}
               disabled={guests >= maxCap}
-              className="flex h-7 w-7 items-center justify-center rounded-full border border-neutral-300 disabled:opacity-40"
+              aria-label="Increase guests"
+              className="flex h-11 w-11 items-center justify-center disabled:opacity-40"
             >
-              <Plus className="h-3.5 w-3.5" />
+              <span className="flex h-7 w-7 items-center justify-center rounded-sm border border-hairline">
+                <Plus className="h-3.5 w-3.5" />
+              </span>
             </button>
           </div>
         </div>
       </div>
 
-      {showCal && (
-        <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
-          onClick={() => setShowCal(false)}
-        >
-          <div
-            className="animate-fade-in w-[min(680px,94vw)] rounded-2xl border border-line bg-surface p-4 shadow-pop"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="font-display text-lg font-semibold text-ink">
-                Select dates
-              </h3>
-              <button
-                onClick={() => setShowCal(false)}
-                aria-label="Close"
-                className="flex h-8 w-8 items-center justify-center rounded-full text-ink hover:bg-neutral-100"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="flex justify-center overflow-x-auto">
-              <DateRangeCalendar
-                range={range}
-                onChange={setRange}
-                numberOfMonths={months}
-              />
-            </div>
-            <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
-              <button
-                onClick={() => setRange(undefined)}
-                className="text-sm font-semibold text-ink underline"
-              >
-                Clear dates
-              </button>
-              <button
-                onClick={() => setShowCal(false)}
-                className="rounded-lg bg-ink px-4 py-1.5 text-sm font-semibold text-white"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PremiumDatePicker
+        open={showCal}
+        onClose={() => setShowCal(false)}
+        range={range}
+        onChange={setRange}
+        onContinue={() => setShowCal(false)}
+        disabledRanges={blockedRanges}
+        pricing={{
+          pricePerNight: referenceRoomType.price_per_night,
+          cleaningFee: referenceRoomType.cleaning_fee,
+          serviceFeePct: referenceRoomType.serviceFeePct,
+        }}
+        availability={
+          hasDates
+            ? {
+                avail: availableCount(referenceRoomType, range!.from!, range!.to!),
+                total: referenceRoomType.totalInstances,
+              }
+            : null
+        }
+        cancellationPolicy={cancellationPolicy}
+        seed={listingId}
+      />
 
       {/* Choose your room */}
       {multi && (
-        <h3 className="mt-5 text-base font-bold text-ink">Choose your room</h3>
+        <h3 className="overline mt-6 text-ink">Choose your room</h3>
       )}
       <div className="mt-3 space-y-3">
         {roomTypes.map((rt) => {
@@ -210,6 +229,7 @@ export function RoomSelection({
                   pricePerNight: rt.price_per_night,
                   cleaningFee: rt.cleaning_fee,
                   serviceFeePct: rt.serviceFeePct,
+                  taxRatePct: taxRule.ratePct,
                 },
                 range!.from!,
                 range!.to!
@@ -220,13 +240,13 @@ export function RoomSelection({
             <div
               key={rt.id}
               className={cn(
-                "rounded-xl border p-4",
-                soldOut ? "border-neutral-200 opacity-60" : "border-neutral-300"
+                "rounded-sm border border-hairline p-4",
+                soldOut && "opacity-60"
               )}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-semibold text-ink">{rt.name}</p>
+                  <p className="font-display text-lg text-ink">{rt.name}</p>
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
                     <span className="inline-flex items-center gap-1">
                       <Users className="h-3.5 w-3.5" />
@@ -249,21 +269,21 @@ export function RoomSelection({
                   </div>
                 </div>
                 <div className="shrink-0 text-right">
-                  <p className="text-sm text-ink">
-                    <span className="font-bold">
+                  <p className="text-ink">
+                    <span className="numeral text-lg">
                       {money(rt.price_per_night)}
                     </span>
-                    <span className="text-muted"> /night</span>
+                    <span className="text-xs text-muted"> / night</span>
                   </p>
                   {hasDates && (
                     <p
                       className={cn(
-                        "mt-0.5 text-xs font-semibold",
+                        "overline-sm mt-1",
                         soldOut
                           ? "text-muted"
                           : avail <= 2
-                            ? "text-brand"
-                            : "text-green-600"
+                            ? "text-accent-dark"
+                            : "text-ink"
                       )}
                     >
                       {soldOut ? "Sold out" : `${avail} left`}
@@ -273,13 +293,13 @@ export function RoomSelection({
               </div>
 
               {breakdown && breakdown.nights > 0 && !soldOut && (
-                <div className="mt-3 border-t border-neutral-200 pt-3">
-                  <PriceBreakdownRows breakdown={breakdown} />
+                <div className="mt-3 border-t border-hairline pt-3">
+                  <PriceBreakdownRows breakdown={breakdown} taxLabel={taxRule.label} />
                 </div>
               )}
 
               {tooMany && hasDates && (
-                <p className="mt-2 text-xs text-brand">
+                <p className="mt-2 text-xs text-accent-dark">
                   Holds up to {rt.max_guests} guests — lower your guest count.
                 </p>
               )}
@@ -298,30 +318,24 @@ export function RoomSelection({
         })}
       </div>
 
-      <p className="mt-3 text-center text-sm text-muted">
+      <p className="overline-sm mt-4 text-center text-muted">
         You won&apos;t be charged yet
       </p>
 
-      {/* Trust row */}
-      <ul className="mt-4 space-y-2 border-t border-line pt-4 text-sm text-ink">
-        <li className="flex items-center gap-2">
-          <ShieldCheck className="h-4 w-4 text-accent-dark" />
+      {/* Assurances */}
+      <ul className="mt-5 space-y-2.5 border-t border-hairline pt-5 text-sm text-ink">
+        <li className="flex items-center gap-2.5">
+          <ShieldCheck className="h-4 w-4 text-accent-dark" strokeWidth={1.5} />
           {cancellationLabel(cancellationPolicy)}
         </li>
-        <li className="flex items-center gap-2">
-          <Tag className="h-4 w-4 text-accent-dark" />
-          Lowest price in 30 days
+        <li className="flex items-center gap-2.5">
+          <Tag className="h-4 w-4 text-accent-dark" strokeWidth={1.5} />
+          Transparent pricing
         </li>
-        <li className="flex items-center gap-2">
-          <BadgeCheck className="h-4 w-4 text-accent-dark" />
+        <li className="flex items-center gap-2.5">
+          <BadgeCheck className="h-4 w-4 text-accent-dark" strokeWidth={1.5} />
           No hidden fees
         </li>
-        {hasDates && (
-          <li className="flex items-center gap-2 font-semibold text-brand">
-            <Flame className="h-4 w-4" />
-            High demand for these dates
-          </li>
-        )}
       </ul>
     </div>
   );

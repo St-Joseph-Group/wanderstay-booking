@@ -27,7 +27,7 @@ export default async function TripsPage() {
       <h1 className="mb-6 text-3xl font-bold text-ink">Trips</h1>
 
       {trips.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-300 py-20 text-center">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-hairline py-20 text-center">
           <Luggage className="mb-3 h-10 w-10 text-muted" />
           <p className="text-lg font-semibold text-ink">No trips booked… yet!</p>
           <p className="mt-1 max-w-sm text-sm text-muted">
@@ -86,7 +86,7 @@ function TripCard({
   const cancelled = trip.status === "cancelled";
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-neutral-200 p-4 sm:flex-row">
+    <div className="flex flex-col gap-4 rounded-2xl border border-hairline p-4 sm:flex-row">
       <Link
         href={trip.listing ? `/listings/${trip.listing.id}` : "#"}
         className="relative h-40 w-full shrink-0 overflow-hidden rounded-xl bg-neutral-100 sm:h-32 sm:w-48"

@@ -18,6 +18,7 @@ export function SearchBar({
 }) {
   const router = useRouter();
   const ref = React.useRef<HTMLDivElement>(null);
+  const whereInputRef = React.useRef<HTMLInputElement>(null);
   const [panel, setPanel] = React.useState<Panel>(null);
   const [where, setWhere] = React.useState("");
   const [range, setRange] = React.useState<DateRange | undefined>();
@@ -59,14 +60,16 @@ export function SearchBar({
 
   return (
     <div ref={ref} className="relative w-full max-w-3xl">
-      <div className="flex items-center rounded-xl border border-line bg-white shadow-float">
+      <div className="flex items-center rounded-xl border border-hairline bg-white shadow-float">
         <Segment
+          as="div"
           label="Where"
           active={panel === "where"}
-          onClick={() => setPanel("where")}
+          onClick={() => whereInputRef.current?.focus()}
           className="flex-[1.4] rounded-l-xl"
         >
           <input
+            ref={whereInputRef}
             value={where}
             onChange={(e) => setWhere(e.target.value)}
             onFocus={() => setPanel("where")}
@@ -149,23 +152,36 @@ function Segment({
   active,
   onClick,
   className,
+  as = "button",
 }: {
   label: string;
   children: React.ReactNode;
   active?: boolean;
   onClick?: () => void;
   className?: string;
+  as?: "button" | "div";
 }) {
+  const sharedClassName = cn(
+    "flex flex-col items-start px-5 py-3 text-left transition-colors",
+    active ? "rounded-lg bg-neutral-100" : "rounded-lg hover:bg-neutral-50",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40",
+    className
+  );
+
+  if (as === "div") {
+    // Wraps a focusable child (the "Where" text input) directly — a <button>
+    // wrapper would nest interactive elements, which is invalid HTML and
+    // breaks keyboard/screen-reader focus.
+    return (
+      <div onClick={onClick} className={sharedClassName}>
+        <span className="text-xs font-semibold text-ink">{label}</span>
+        <span className="mt-0.5 w-full">{children}</span>
+      </div>
+    );
+  }
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "flex flex-col items-start px-5 py-3 text-left transition-colors",
-        active ? "rounded-lg bg-neutral-100" : "rounded-lg hover:bg-neutral-50",
-        className
-      )}
-    >
+    <button type="button" onClick={onClick} className={sharedClassName}>
       <span className="text-xs font-semibold text-ink">{label}</span>
       <span className="mt-0.5 w-full">{children}</span>
     </button>
@@ -186,7 +202,7 @@ function Popover({
   return (
     <div
       className={cn(
-        "animate-fade-in absolute top-[110%] z-50 rounded-3xl border border-neutral-200 bg-white p-5 shadow-pop",
+        "animate-fade-in absolute top-[110%] z-50 rounded-3xl border border-hairline bg-white p-5 shadow-pop",
         className
       )}
     >
@@ -212,7 +228,7 @@ function Stepper({
         type="button"
         onClick={() => onChange(Math.max(min, value - 1))}
         disabled={value <= min}
-        className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-300 text-ink disabled:opacity-40"
+        className="flex h-8 w-8 items-center justify-center rounded-full border border-hairline text-ink disabled:opacity-40"
       >
         <Minus className="h-4 w-4" />
       </button>
@@ -221,7 +237,7 @@ function Stepper({
         type="button"
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={value >= max}
-        className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-300 text-ink disabled:opacity-40"
+        className="flex h-8 w-8 items-center justify-center rounded-full border border-hairline text-ink disabled:opacity-40"
       >
         <Plus className="h-4 w-4" />
       </button>

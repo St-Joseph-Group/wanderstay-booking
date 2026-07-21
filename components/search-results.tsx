@@ -21,8 +21,8 @@ export function SearchResults({
 
   return (
     <div>
-      <div className="mb-5 flex justify-end">
-        <div className="inline-flex rounded-lg border border-line bg-surface p-0.5">
+      <div className="mb-6 flex justify-end">
+        <div className="inline-flex rounded-sm border border-hairline bg-surface p-0.5">
           <ToggleBtn
             active={view === "grid"}
             onClick={() => setView("grid")}
@@ -33,7 +33,7 @@ export function SearchResults({
             active={view === "map"}
             onClick={() => setView("map")}
             icon={<MapIcon className="h-4 w-4" />}
-            label="Show map"
+            label="Map"
           />
         </div>
       </div>
@@ -41,7 +41,7 @@ export function SearchResults({
       {view === "map" ? (
         <SearchMap listings={listings} />
       ) : (
-        <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
           {listings.map((listing, i) => (
             <ListingCard
               key={listing.id}
@@ -72,8 +72,8 @@ function ToggleBtn({
     <button
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors",
-        active ? "bg-brand text-white" : "text-ink hover:bg-neutral-100"
+        "overline-sm inline-flex items-center gap-1.5 rounded-sm px-3 py-2 transition-colors",
+        active ? "bg-brand text-white" : "text-ink hover:bg-black/5"
       )}
     >
       {icon}

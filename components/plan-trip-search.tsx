@@ -26,7 +26,7 @@ export function PlanTripSearch({ initial = "" }: { initial?: string }) {
           e.preventDefault();
           submit(text);
         }}
-        className="flex items-center gap-2 rounded-xl border border-neutral-300 bg-surface p-2 shadow-card focus-within:border-ink"
+        className="flex items-center gap-2 rounded-xl border border-hairline bg-surface p-2 shadow-card focus-within:border-ink"
       >
         <Sparkles className="ml-2 h-5 w-5 shrink-0 text-accent-dark" />
         <input
@@ -50,7 +50,7 @@ export function PlanTripSearch({ initial = "" }: { initial?: string }) {
               setText(ex);
               submit(ex);
             }}
-            className="rounded-full border border-line bg-surface px-3 py-1.5 text-xs text-muted transition-colors hover:border-ink hover:text-ink"
+            className="rounded-full border border-hairline bg-surface px-3 py-1.5 text-xs text-muted transition-colors hover:border-ink hover:text-ink"
           >
             {ex}
           </button>

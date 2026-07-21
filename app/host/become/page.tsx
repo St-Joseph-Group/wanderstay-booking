@@ -56,7 +56,7 @@ function Feature({
   body: string;
 }) {
   return (
-    <div className="rounded-2xl border border-neutral-200 p-6 text-left">
+    <div className="rounded-2xl border border-hairline p-6 text-left">
       <Icon className="h-8 w-8 text-brand" />
       <h3 className="mt-3 font-bold text-ink">{title}</h3>
       <p className="mt-1 text-sm text-muted">{body}</p>

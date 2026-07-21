@@ -53,10 +53,10 @@ export function FilterChips({ query }: { query: string }) {
             key={c.label}
             onClick={() => toggle(c)}
             className={cn(
-              "shrink-0 rounded-md border px-3.5 py-2 text-sm font-medium shadow-[0_1px_2px_rgba(28,31,42,0.08)] transition-colors",
+              "overline-sm shrink-0 rounded-sm border px-3.5 py-2 transition-colors",
               active
                 ? "border-brand bg-brand text-white"
-                : "border-neutral-200 bg-surface text-ink hover:bg-neutral-100"
+                : "border-hairline bg-surface text-ink hover:border-ink"
             )}
           >
             {c.label}

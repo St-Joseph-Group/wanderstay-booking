@@ -24,21 +24,21 @@ export function HostCard({
         : `${Math.round(host.response_time_minutes / 60)} hr`;
 
   return (
-    <div className="rounded-lg border border-line bg-surface p-5 shadow-card">
+    <div className="rounded-2xl border border-hairline bg-surface p-6">
       <div className="flex items-center gap-4">
         <Avatar name={host.full_name} src={host.avatar_url} size={56} />
         <div>
-          <p className="text-lg font-bold text-ink">
+          <p className="font-display text-xl text-ink">
             Hosted by {host.full_name ?? "a host"}
           </p>
-          <div className="mt-1 flex flex-wrap gap-1.5">
+          <div className="mt-2 flex flex-wrap gap-2">
             {host.is_superhost && (
-              <span className="inline-flex items-center gap-1 rounded-md bg-brand px-2 py-0.5 text-[11px] font-semibold text-white">
+              <span className="overline-sm inline-flex items-center gap-1 rounded-sm bg-brand px-2 py-1 text-white">
                 <Star className="h-3 w-3 fill-current" /> Superhost
               </span>
             )}
             {host.is_verified && (
-              <span className="inline-flex items-center gap-1 rounded-md bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent-dark">
+              <span className="overline-sm inline-flex items-center gap-1 rounded-sm border border-hairline px-2 py-1 text-accent-dark">
                 <BadgeCheck className="h-3 w-3" /> Verified Host
               </span>
             )}
@@ -46,17 +46,17 @@ export function HostCard({
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
+      <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
         {year && <span>Hosting since {year}</span>}
         {responseLabel && (
           <span className="inline-flex items-center gap-1.5">
-            <Clock className="h-4 w-4" /> Responds in ~{responseLabel}
+            <Clock className="h-4 w-4" strokeWidth={1.5} /> Responds in ~{responseLabel}
           </span>
         )}
       </div>
 
       {host.bio && (
-        <p className="mt-3 leading-relaxed text-ink">{host.bio}</p>
+        <p className="mt-4 leading-relaxed text-ink">{host.bio}</p>
       )}
     </div>
   );

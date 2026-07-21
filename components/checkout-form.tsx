@@ -65,7 +65,7 @@ export function CheckoutForm({
       <input type="hidden" name="checkout" value={checkout} />
       <input type="hidden" name="guests" value={guests} />
 
-      <div className="rounded-xl border border-line bg-surface p-5 shadow-card">
+      <div className="rounded-xl border border-hairline bg-surface p-5 shadow-card">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold text-ink">Pay with</h2>
           <div className="flex items-center gap-1.5 text-xs text-muted">
@@ -90,7 +90,7 @@ export function CheckoutForm({
               />
               <CreditCard className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
               {brand && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md border border-line bg-canvas px-2 py-0.5 text-xs font-semibold text-ink">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md border border-hairline bg-canvas px-2 py-0.5 text-xs font-semibold text-ink">
                   {brand}
                 </span>
               )}

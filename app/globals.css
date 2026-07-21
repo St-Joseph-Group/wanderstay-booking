@@ -1,41 +1,45 @@
 @import "tailwindcss";
 
 @theme {
-  /* Primary = deep navy / charcoal (repurposed "brand" so it cascades app-wide) */
-  --color-brand: #1c1f2a;
-  --color-brand-dark: #11141d;
-  --color-brand-light: #2b2f3a;
+  /* Warm Classic — primary = soft warm walnut (buttons, footer, dark surfaces).
+     Comfortable, low-contrast, easy on the eyes. */
+  --color-brand: #4b4035;
+  --color-brand-dark: #3a3128;
+  --color-brand-light: #665847;
 
-  /* Accent = gold / champagne — badges, active chips, stars, saved heart */
-  --color-accent: #c8a96a;
-  --color-accent-dark: #ad8f53;
-  --color-accent-soft: #f1ead9;
+  /* Accent = warm terracotta / clay — gentle highlights, links, marks. */
+  --color-accent: #b47154;
+  --color-accent-dark: #965a41;
+  --color-accent-soft: #f1e4da;
 
-  --color-ink: #222222;
-  --color-muted: #6f6f6f;
-  --color-line: #e6e4df;
-  --color-surface: #ffffff;
-  --color-canvas: #f7f6f3;
+  /* Warm, soft ink — not black. Comfortable reading. */
+  --color-ink: #3d352d;
+  --color-muted: #8b8074;
+  --color-line: #e9dfd0;
+  --color-hairline: #e2d7c5;
+  --color-surface: #fffdf8;
+  --color-canvas: #f8f3ea;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
+  --font-display: var(--font-lora), Georgia, "Times New Roman", serif;
 
-  /* Tighter radii for a more structured, upscale feel */
-  --radius-sm: 0.1875rem;
-  --radius-md: 0.25rem;
-  --radius-lg: 0.375rem;
-  --radius-xl: 0.5rem;
-  --radius-2xl: 0.625rem;
-  --radius-3xl: 0.875rem;
+  /* Soft, rounded radii — gentle and friendly, not sharp */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.375rem;
+  --radius-3xl: 1.75rem;
 
-  --shadow-card: 0 1px 2px rgba(28, 31, 42, 0.06), 0 10px 26px rgba(28, 31, 42, 0.07);
-  --shadow-float: 0 2px 14px rgba(28, 31, 42, 0.1);
-  --shadow-pop: 0 6px 24px rgba(28, 31, 42, 0.14);
+  /* Soft, warm-tinted, diffuse shadows — depth without harsh edges */
+  --shadow-card: 0 1px 3px rgba(60, 50, 40, 0.05), 0 10px 30px rgba(60, 50, 40, 0.07);
+  --shadow-float: 0 4px 20px rgba(60, 50, 40, 0.1);
+  --shadow-pop: 0 16px 44px rgba(60, 50, 40, 0.16);
 }
 
 :root {
-  --background: #f7f6f3;
-  --foreground: #222222;
+  --background: #f8f3ea;
+  --foreground: #3d352d;
 }
 
 html {
@@ -49,12 +53,45 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Serif headings everywhere — editorial / upscale tone */
+/* Soft serif headings — warm, humanist, comfortable */
 h1,
 h2,
 h3 {
   font-family: var(--font-display);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.005em;
+  font-weight: 500;
+}
+
+/* --- Warm Classic label utilities --- */
+
+/* Soft small labels (kickers, captions, quiet badges). NOT uppercase — gentle
+   sentence-case with a hint of tracking, so it reads as a calm sub-label. */
+.overline {
+  text-transform: none;
+  letter-spacing: 0.005em;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+}
+.overline-sm {
+  text-transform: none;
+  letter-spacing: 0.005em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+}
+
+/* Serif numerals for prices/ratings — refined, not bold marketplace type */
+.numeral {
+  font-family: var(--font-display);
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+
+/* A section index marker: "01 —" style */
+.section-index {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--color-accent-dark);
 }
 
 /* Hide scrollbars on horizontal scrollers (category row) */
@@ -64,6 +101,14 @@ h3 {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Card image crossfade: second photo fades in on hover of .group */
+.crossfade-top {
+  transition: opacity 0.7s ease;
+}
+.group:hover .crossfade-top {
+  opacity: 0;
 }
 
 /* react-day-picker theming */
@@ -121,6 +166,20 @@ h3 {
 }
 .animate-saved-pop {
   animation: saved-pop 0.4s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .animate-fade-in,
+  .animate-saved-pop {
+    animation: none;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }
 
 /* MapLibre price pins + popups */

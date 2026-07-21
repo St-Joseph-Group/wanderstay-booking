@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -66,7 +67,7 @@ export function SearchFilters({ query }: { query: string }) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-xl border border-neutral-300 px-4 py-2.5 text-sm font-semibold text-ink hover:border-ink"
+        className="flex items-center gap-2 rounded-xl border border-hairline px-4 py-2.5 text-sm font-semibold text-ink hover:border-ink"
       >
         <SlidersHorizontal className="h-4 w-4" />
         Filters
@@ -77,89 +78,91 @@ export function SearchFilters({ query }: { query: string }) {
         )}
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4">
-          <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-pop">
-            <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
-              <button onClick={() => setOpen(false)} aria-label="Close">
-                <X className="h-5 w-5 text-ink" />
-              </button>
-              <h2 className="font-bold text-ink">Filters</h2>
-              <span className="w-5" />
-            </div>
-
-            <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
-              <div>
-                <h3 className="mb-2 font-semibold text-ink">Price range</h3>
-                <p className="mb-3 text-sm text-muted">Nightly price in USD</p>
-                <div className="flex items-center gap-3">
-                  <PriceInput label="Min" value={minPrice} onChange={setMinPrice} />
-                  <span className="text-muted">–</span>
-                  <PriceInput label="Max" value={maxPrice} onChange={setMaxPrice} />
-                </div>
+      {open &&
+        createPortal(
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+            <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-pop">
+              <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
+                <button onClick={() => setOpen(false)} aria-label="Close">
+                  <X className="h-5 w-5 text-ink" />
+                </button>
+                <h2 className="font-bold text-ink">Filters</h2>
+                <span className="w-5" />
               </div>
 
-              <div>
-                <h3 className="mb-3 font-semibold text-ink">Guests</h3>
-                <div className="flex flex-wrap gap-2">
-                  {[0, 1, 2, 4, 6, 8].map((g) => (
-                    <Pill
-                      key={g}
-                      active={guests === g}
-                      onClick={() => setGuests(g)}
-                    >
-                      {g === 0 ? "Any" : `${g}+`}
+              <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
+                <div>
+                  <h3 className="mb-2 font-semibold text-ink">Price range</h3>
+                  <p className="mb-3 text-sm text-muted">Nightly price in USD</p>
+                  <div className="flex items-center gap-3">
+                    <PriceInput label="Min" value={minPrice} onChange={setMinPrice} />
+                    <span className="text-muted">–</span>
+                    <PriceInput label="Max" value={maxPrice} onChange={setMaxPrice} />
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="mb-3 font-semibold text-ink">Guests</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {[0, 1, 2, 4, 6, 8].map((g) => (
+                      <Pill
+                        key={g}
+                        active={guests === g}
+                        onClick={() => setGuests(g)}
+                      >
+                        {g === 0 ? "Any" : `${g}+`}
+                      </Pill>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="mb-3 font-semibold text-ink">Property type</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <Pill active={type === ""} onClick={() => setType("")}>
+                      Any
                     </Pill>
-                  ))}
+                    {PROPERTY_TYPES.map((t) => (
+                      <Pill
+                        key={t.value}
+                        active={type === t.value}
+                        onClick={() => setType(t.value)}
+                      >
+                        {t.label}
+                      </Pill>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="mb-3 font-semibold text-ink">Amenities</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {AMENITIES.map((a) => (
+                      <Pill
+                        key={a}
+                        active={amenities.includes(a)}
+                        onClick={() => toggleAmenity(a)}
+                      >
+                        {a}
+                      </Pill>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <h3 className="mb-3 font-semibold text-ink">Property type</h3>
-                <div className="flex flex-wrap gap-2">
-                  <Pill active={type === ""} onClick={() => setType("")}>
-                    Any
-                  </Pill>
-                  {PROPERTY_TYPES.map((t) => (
-                    <Pill
-                      key={t.value}
-                      active={type === t.value}
-                      onClick={() => setType(t.value)}
-                    >
-                      {t.label}
-                    </Pill>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="mb-3 font-semibold text-ink">Amenities</h3>
-                <div className="flex flex-wrap gap-2">
-                  {AMENITIES.map((a) => (
-                    <Pill
-                      key={a}
-                      active={amenities.includes(a)}
-                      onClick={() => toggleAmenity(a)}
-                    >
-                      {a}
-                    </Pill>
-                  ))}
-                </div>
+              <div className="flex items-center justify-between border-t border-neutral-100 px-5 py-4">
+                <button
+                  onClick={clearAll}
+                  className="text-sm font-semibold text-ink underline"
+                >
+                  Clear all
+                </button>
+                <Button onClick={apply}>Show results</Button>
               </div>
             </div>
-
-            <div className="flex items-center justify-between border-t border-neutral-100 px-5 py-4">
-              <button
-                onClick={clearAll}
-                className="text-sm font-semibold text-ink underline"
-              >
-                Clear all
-              </button>
-              <Button onClick={apply}>Show results</Button>
-            </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </>
   );
 }
@@ -174,7 +177,7 @@ function PriceInput({
   onChange: (v: string) => void;
 }) {
   return (
-    <label className="flex-1 rounded-xl border border-neutral-300 px-3 py-2">
+    <label className="flex-1 rounded-xl border border-hairline px-3 py-2">
       <span className="block text-xs text-muted">{label}</span>
       <div className="flex items-center">
         <span className="text-sm text-ink">$</span>
@@ -207,7 +210,7 @@ function Pill({
         "rounded-full border px-3.5 py-2 text-sm transition-colors",
         active
           ? "border-ink bg-ink text-white"
-          : "border-neutral-300 text-ink hover:border-ink"
+          : "border-hairline text-ink hover:border-ink"
       )}
     >
       {children}

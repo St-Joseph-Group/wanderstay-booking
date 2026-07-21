@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, Sparkles, X } from "lucide-react";
+import { Search, Sparkles, X, ArrowRight } from "lucide-react";
 import { SearchBar } from "@/components/search-bar";
 import { cn } from "@/lib/utils";
 
@@ -48,79 +49,90 @@ export function HeaderSearch() {
     <>
       <button
         onClick={open}
-        className="hidden items-center gap-3 rounded-full border border-line py-1.5 pl-5 pr-1.5 shadow-float transition-shadow hover:shadow-pop md:flex"
+        className="group flex w-full items-center gap-3 rounded-full border border-hairline bg-surface py-2 pl-5 pr-2 shadow-sm transition-all hover:border-accent/50 hover:shadow-card"
+        aria-label="Search stays"
       >
-        <span className="text-sm font-medium text-ink">
-          Where would you like to escape?
+        <Search
+          className="h-4 w-4 shrink-0 text-accent-dark"
+          strokeWidth={2}
+        />
+        <span className="flex-1 truncate text-left text-sm text-muted">
+          Where would you like to go?
         </span>
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-white">
-          <Search className="h-3.5 w-3.5" />
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-white transition-colors group-hover:bg-brand-dark">
+          <ArrowRight className="h-4 w-4" strokeWidth={2} />
         </span>
       </button>
 
-      {render && (
-        <div
-          onClick={close}
-          onTransitionEnd={() => {
-            // Unmount once the leave transition has finished.
-            if (!visible) setRender(false);
-          }}
-          className={cn(
-            "fixed inset-0 z-[70] flex items-start justify-center p-4 pt-20 backdrop-blur-md transition-opacity duration-200 ease-out",
-            visible ? "bg-black/40 opacity-100" : "bg-black/0 opacity-0"
-          )}
-        >
+      {render &&
+        createPortal(
           <div
-            onClick={(e) => e.stopPropagation()}
+            onClick={close}
+            onTransitionEnd={() => {
+              // Unmount once the leave transition has finished.
+              if (!visible) setRender(false);
+            }}
             className={cn(
-              "relative w-full max-w-2xl rounded-2xl border border-line bg-surface p-6 shadow-pop transition-all duration-200 ease-out",
-              visible
-                ? "translate-y-0 scale-100 opacity-100"
-                : "-translate-y-2 scale-[0.98] opacity-0"
+              "fixed inset-0 z-[70] flex items-start justify-center p-4 pt-20 backdrop-blur-md transition-opacity duration-200 ease-out",
+              visible ? "bg-black/40 opacity-100" : "bg-black/0 opacity-0"
             )}
           >
-            <button
-              onClick={close}
-              aria-label="Close search"
-              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-ink transition-colors hover:bg-neutral-100"
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className={cn(
+                "relative w-full max-w-3xl rounded-2xl border border-hairline bg-canvas p-8 shadow-pop transition-all duration-200 ease-out",
+                visible
+                  ? "translate-y-0 scale-100 opacity-100"
+                  : "-translate-y-2 scale-[0.98] opacity-0"
+              )}
             >
-              <X className="h-5 w-5" />
-            </button>
-            <h2 className="font-display text-2xl font-semibold text-ink">
-              Where would you like to escape?
-            </h2>
-            <p className="mb-5 mt-1 text-sm text-muted">
-              Search by destination, dates and guests — or let us plan the whole
-              trip.
-            </p>
-
-            <SearchBar onNavigate={close} />
-
-            <div className="mt-5 flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-                Popular
-              </span>
-              {SUGGESTIONS.map((s) => (
-                <Link
-                  key={s}
-                  href={`/search?q=${encodeURIComponent(s)}`}
-                  onClick={close}
-                  className="rounded-full border border-line bg-surface px-3 py-1.5 text-sm text-ink transition-colors hover:border-ink"
-                >
-                  {s}
-                </Link>
-              ))}
-              <Link
-                href="/plan"
+              <button
                 onClick={close}
-                className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1.5 text-sm font-semibold text-accent-dark transition-colors hover:bg-accent hover:text-ink"
+                aria-label="Close search"
+                className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-sm text-ink transition-colors hover:bg-black/5"
               >
-                <Sparkles className="h-3.5 w-3.5" /> Plan my Trip
-              </Link>
+                <X className="h-5 w-5" strokeWidth={1.5} />
+              </button>
+              <p className="overline text-accent-dark">The concierge</p>
+              <h2 className="mt-2 font-display text-3xl text-ink">
+                Where would you like to escape?
+              </h2>
+              <p className="mb-6 mt-2 text-sm text-muted">
+                Search by destination, dates and guests — or let us compose the
+                whole itinerary.
+              </p>
+
+              <SearchBar onNavigate={close} />
+
+              <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2">
+                <span className="overline-sm text-muted">Frequently sought</span>
+                {SUGGESTIONS.map((s) => (
+                  <Link
+                    key={s}
+                    href={`/search?q=${encodeURIComponent(s)}`}
+                    onClick={close}
+                    className="overline-sm rounded-sm border border-hairline px-3 py-2 text-ink transition-colors hover:border-ink"
+                  >
+                    {s}
+                  </Link>
+                ))}
+              </div>
+
+              <div className="mt-6 flex items-center justify-between gap-3 border-t border-hairline pt-5">
+                <p className="text-sm text-muted">Not sure where to go?</p>
+                <Link
+                  href="/plan"
+                  onClick={close}
+                  className="inline-flex items-center gap-2 text-accent-dark transition-colors hover:text-ink"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span className="overline">Plan my Trip</span>
+                </Link>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </>
   );
 }

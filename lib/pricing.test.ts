@@ -63,4 +63,35 @@ describe("computePricing", () => {
     expect(b.serviceFee).toBe(0);
     expect(b.total).toBe(22000); // 20000 nightly + 2000 cleaning
   });
+
+  it("applies no tax by default (backward compatible)", () => {
+    const b = computePricing(base, "2026-07-10", "2026-07-13");
+    expect(b.taxRatePct).toBe(0);
+    expect(b.tax).toBe(0);
+    expect(b.total).toBe(50540); // unchanged from the no-tax total
+  });
+
+  it("adds a tax line on the subtotal and includes it in the total", () => {
+    const b = computePricing(
+      { ...base, taxRatePct: 0.12 },
+      "2026-07-10",
+      "2026-07-13"
+    );
+    const subtotal = 42000 + 3500 + 5040; // nightly + cleaning + service = 50540
+    expect(b.tax).toBe(Math.round(subtotal * 0.12)); // 6065 (round of 6064.8)
+    expect(b.tax).toBe(6065);
+    expect(b.total).toBe(subtotal + 6065); // 56605
+    // Line items must reconcile exactly with the total.
+    expect(b.nightlyTotal + b.cleaningFee + b.serviceFee + b.tax).toBe(b.total);
+  });
+
+  it("charges no tax on a zero-night range", () => {
+    const b = computePricing(
+      { ...base, taxRatePct: 0.2 },
+      "2026-07-10",
+      "2026-07-10"
+    );
+    expect(b.tax).toBe(0);
+    expect(b.total).toBe(0);
+  });
 });

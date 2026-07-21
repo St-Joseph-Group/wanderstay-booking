@@ -6,13 +6,16 @@ export type PriceBreakdown = {
   nightlyTotal: number; // cents
   cleaningFee: number; // cents
   serviceFee: number; // cents
-  total: number; // cents
+  taxRatePct: number; // e.g. 0.12
+  tax: number; // cents
+  total: number; // cents (tax-inclusive)
 };
 
 export type PricingInput = {
   pricePerNight: number; // cents
   cleaningFee: number; // cents
   serviceFeePct: number; // e.g. 0.12
+  taxRatePct?: number; // destination tax/VAT, e.g. 0.12 — see lib/tax.ts
 };
 
 /**
@@ -33,7 +36,21 @@ export function computePricing(
   const nightlyTotal = nightlyRate * nights;
   const cleaningFee = nights > 0 ? input.cleaningFee : 0;
   const serviceFee = Math.round(nightlyTotal * input.serviceFeePct);
-  const total = nightlyTotal + cleaningFee + serviceFee;
 
-  return { nights, nightlyRate, nightlyTotal, cleaningFee, serviceFee, total };
+  // Destination tax/VAT is applied to the accommodation subtotal.
+  const subtotal = nightlyTotal + cleaningFee + serviceFee;
+  const taxRatePct = input.taxRatePct ?? 0;
+  const tax = Math.round(subtotal * taxRatePct);
+  const total = subtotal + tax;
+
+  return {
+    nights,
+    nightlyRate,
+    nightlyTotal,
+    cleaningFee,
+    serviceFee,
+    taxRatePct,
+    tax,
+    total,
+  };
 }

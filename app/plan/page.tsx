@@ -53,7 +53,7 @@ export default async function PlanPage({
 
   return (
     <div>
-      <section className="border-b border-line bg-gradient-to-b from-accent-soft/60 to-canvas">
+      <section className="border-b border-hairline bg-gradient-to-b from-accent-soft/60 to-canvas">
         <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
           <p className="mb-2 inline-flex items-center gap-1.5 text-sm font-semibold text-accent-dark">
             <Compass className="h-4 w-4" /> Plan my Trip
@@ -122,7 +122,7 @@ export default async function PlanPage({
                 {dest.neighborhoods.map((n) => (
                   <div
                     key={n.name}
-                    className="rounded-lg border border-line bg-surface p-4 shadow-card"
+                    className="rounded-lg border border-hairline bg-surface p-4 shadow-card"
                   >
                     <p className="flex items-center gap-1.5 font-semibold text-ink">
                       <MapPin className="h-4 w-4 text-accent-dark" /> {n.name}
@@ -140,7 +140,7 @@ export default async function PlanPage({
                 {itinerary.map((d) => (
                   <div
                     key={d.day}
-                    className="rounded-lg border border-line bg-surface p-5 shadow-card"
+                    className="rounded-lg border border-hairline bg-surface p-5 shadow-card"
                   >
                     <p className="mb-3 font-display text-lg font-semibold text-ink">
                       Day {d.day}
@@ -177,7 +177,7 @@ export default async function PlanPage({
                 {dest.experiences.map((ex) => (
                   <div
                     key={ex.name}
-                    className="flex flex-col rounded-lg border border-line bg-surface p-4 shadow-card"
+                    className="flex flex-col rounded-lg border border-hairline bg-surface p-4 shadow-card"
                   >
                     <span className="mb-1 inline-flex w-fit rounded-md bg-brand/5 px-2 py-0.5 text-[11px] font-semibold text-brand">
                       {ex.type}

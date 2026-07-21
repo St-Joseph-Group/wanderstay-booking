@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Share, Heart } from "lucide-react";
+import { Share, Bookmark } from "lucide-react";
 import { toggleFavorite } from "@/lib/actions/favorites";
 import { toast } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
@@ -52,23 +52,26 @@ export function ShareSave({
       setSaved(!optimistic);
       toast("Could not update wishlist.", "error");
     } else {
-      toast(optimistic ? "Saved to wishlist" : "Removed from wishlist", "success");
+      toast(optimistic ? "Saved to your collection" : "Removed from your collection", "success");
     }
   }
 
   return (
-    <div className="ml-auto hidden items-center gap-4 sm:flex">
+    <div className="ml-auto hidden items-center gap-5 sm:flex">
       <button
         onClick={share}
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink underline-offset-2 hover:underline"
+        className="overline-sm inline-flex items-center gap-1.5 text-ink transition-colors hover:text-accent-dark"
       >
-        <Share className="h-4 w-4" /> Share
+        <Share className="h-4 w-4" strokeWidth={1.75} /> Share
       </button>
       <button
         onClick={save}
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink underline-offset-2 hover:underline"
+        className="overline-sm inline-flex items-center gap-1.5 text-ink transition-colors hover:text-accent-dark"
       >
-        <Heart className={cn("h-4 w-4", saved && "fill-accent text-accent")} />
+        <Bookmark
+          className={cn("h-4 w-4", saved && "fill-accent text-accent-dark")}
+          strokeWidth={1.75}
+        />
         {saved ? "Saved" : "Save"}
       </button>
     </div>
