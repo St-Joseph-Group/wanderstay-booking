@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 520" width="400" height="520" role="img" aria-label="Wanderstay">
+  <!-- Warm Classic palette: walnut structure (#4b4035), vivid marigold sun.
+       Kept in sync with components/logo-mark.tsx. -->
+  <defs>
+    <linearGradient id="sun" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffc24d"/>
+      <stop offset="55%" stop-color="#f79420"/>
+      <stop offset="100%" stop-color="#e0651b"/>
+    </linearGradient>
+  </defs>
+  <circle cx="150" cy="104" r="92" fill="url(#sun)"/>
+  <path d="M200 58 L62 196 C30 228 22 266 22 300 C22 378 104 456 200 514 C296 456 378 378 378 300 C378 266 370 228 338 196 Z"
+        fill="#fffdf8" stroke="#4b4035" stroke-width="38" stroke-linejoin="round"/>
+  <rect x="278" y="100" width="38" height="72" rx="4" fill="#4b4035"/>
+  <g fill="#4b4035">
+    <rect x="158" y="196" width="36" height="36" rx="4"/>
+    <rect x="206" y="196" width="36" height="36" rx="4"/>
+    <rect x="158" y="244" width="36" height="36" rx="4"/>
+    <rect x="206" y="244" width="36" height="36" rx="4"/>
+  </g>
+  <path d="M58 332 C140 326 226 316 332 292 C252 318 200 362 180 410 C162 456 176 494 200 510 C130 452 74 396 58 332 Z"
+        fill="#4b4035"/>
+</svg>

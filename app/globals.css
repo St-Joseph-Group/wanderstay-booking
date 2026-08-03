@@ -12,6 +12,13 @@
   --color-accent-dark: #965a41;
   --color-accent-soft: #f1e4da;
 
+  /* Sun = the one saturated note in the palette, used by the logo mark.
+     Deliberately more vivid than the terracotta accent so the mark carries
+     energy without pulling the rest of the warm, low-contrast UI with it. */
+  --color-sun-light: #ffc24d;
+  --color-sun: #f79420;
+  --color-sun-deep: #e0651b;
+
   /* Warm, soft ink — not black. Comfortable reading. */
   --color-ink: #3d352d;
   --color-muted: #8b8074;
