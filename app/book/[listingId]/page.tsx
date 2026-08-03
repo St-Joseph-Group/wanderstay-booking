@@ -23,7 +23,7 @@ import { CheckoutForm } from "@/components/checkout-form";
 import { PriceBreakdownRows } from "@/components/price-breakdown";
 import { getListingById, type RoomTypeDetail } from "@/lib/queries";
 import { getSessionProfile } from "@/lib/auth";
-import { computePricing } from "@/lib/pricing";
+import { computePricing, pricingInputFor } from "@/lib/pricing";
 import { taxRuleFor } from "@/lib/tax";
 
 function freeRooms(rt: RoomTypeDetail, from: Date, to: Date): number {
@@ -78,16 +78,7 @@ export default async function CheckoutPage({
   const tooMany = guests > rt!.max_guests;
 
   const taxRule = taxRuleFor(listing.country);
-  const pricing = computePricing(
-    {
-      pricePerNight: rt!.price_per_night,
-      cleaningFee: rt!.cleaning_fee,
-      serviceFeePct: rt!.serviceFeePct,
-      taxRatePct: taxRule.ratePct,
-    },
-    ci,
-    co
-  );
+  const pricing = computePricing(pricingInputFor(rt!, taxRule), ci, co);
 
   const blocked = !datesValid || soldOut || tooMany;
 

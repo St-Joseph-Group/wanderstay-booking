@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { computePricing } from "@/lib/pricing";
+import { computePricing, pricingInputFor } from "@/lib/pricing";
+import { taxRuleFor } from "@/lib/tax";
 
 // computePricing is the single source of truth for booking money math —
 // the booking server action, the booking card, and the stored booking row all
@@ -93,5 +94,58 @@ describe("computePricing", () => {
     );
     expect(b.tax).toBe(0);
     expect(b.total).toBe(0);
+  });
+});
+
+// The date picker used to build its own pricing literal and omitted
+// taxRatePct, so it quoted a pre-tax total while checkout charged a
+// tax-inclusive one. Both now go through pricingInputFor; these tests pin
+// that, since the defect was a missing field at a call site rather than bad
+// arithmetic inside computePricing.
+describe("pricingInputFor", () => {
+  const roomType = {
+    price_per_night: 28000,
+    cleaning_fee: 6000,
+    serviceFeePct: 0.12,
+  };
+
+  it("carries the destination tax rate into the pricing input", () => {
+    const input = pricingInputFor(roomType, taxRuleFor("Indonesia"));
+    expect(input).toEqual({
+      pricePerNight: 28000,
+      cleaningFee: 6000,
+      serviceFeePct: 0.12,
+      taxRatePct: 0.11,
+    });
+  });
+
+  it("always sets taxRatePct, so a quote can never silently drop tax", () => {
+    for (const country of ["Indonesia", "Japan", "United States", "Atlantis", null]) {
+      const input = pricingInputFor(roomType, taxRuleFor(country));
+      expect(input.taxRatePct).toBe(taxRuleFor(country).ratePct);
+      expect(input.taxRatePct).toBeGreaterThan(0);
+    }
+  });
+
+  it("produces a tax-inclusive quote for a real 3-night Bali stay", () => {
+    // The exact stay that exposed the bug: the picker quoted $1,000.80 while
+    // checkout charged $1,110.89. A quote built via pricingInputFor is
+    // tax-inclusive, so the two agree.
+    const quoted = computePricing(
+      pricingInputFor(roomType, taxRuleFor("Indonesia")),
+      "2026-08-13",
+      "2026-08-16"
+    );
+    expect(quoted.nightlyTotal).toBe(84000);
+    expect(quoted.cleaningFee).toBe(6000);
+    expect(quoted.serviceFee).toBe(10080); // round(84000 * 0.12)
+    expect(quoted.tax).toBe(11009); // round((84000 + 6000 + 10080) * 0.11)
+    expect(quoted.total).toBe(111089);
+
+    // Displayed line items must reconcile with the total, or the breakdown
+    // shown to the guest will not add up.
+    expect(
+      quoted.nightlyTotal + quoted.cleaningFee + quoted.serviceFee + quoted.tax
+    ).toBe(quoted.total);
   });
 });

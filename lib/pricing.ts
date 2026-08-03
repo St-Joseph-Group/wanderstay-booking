@@ -18,6 +18,33 @@ export type PricingInput = {
   taxRatePct?: number; // destination tax/VAT, e.g. 0.12 — see lib/tax.ts
 };
 
+/** The room-type fields a quote is built from. */
+export type QuotableRoomType = {
+  price_per_night: number; // cents
+  cleaning_fee: number; // cents
+  serviceFeePct: number;
+};
+
+/**
+ * Builds the pricing input for a room type in a given destination.
+ *
+ * Every surface that quotes a price — the date picker, the room list, the
+ * checkout page — must go through this rather than assembling the object
+ * literal itself. Hand-built literals are how the date picker once shipped
+ * without `taxRatePct` and quoted a total below what checkout charged.
+ */
+export function pricingInputFor(
+  roomType: QuotableRoomType,
+  taxRule: { ratePct: number }
+): PricingInput {
+  return {
+    pricePerNight: roomType.price_per_night,
+    cleaningFee: roomType.cleaning_fee,
+    serviceFeePct: roomType.serviceFeePct,
+    taxRatePct: taxRule.ratePct,
+  };
+}
+
 /**
  * The single source of truth for booking price math. Used by the listing
  * booking card, the checkout page, and the server action that records a

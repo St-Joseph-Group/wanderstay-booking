@@ -8,7 +8,7 @@ import { type DateRange } from "@/components/date-range-picker";
 import { PremiumDatePicker } from "@/components/premium-date-picker";
 import { PriceBreakdownRows } from "@/components/price-breakdown";
 import { Button } from "@/components/ui/button";
-import { computePricing } from "@/lib/pricing";
+import { computePricing, pricingInputFor } from "@/lib/pricing";
 import { taxRuleFor } from "@/lib/tax";
 import { cn } from "@/lib/utils";
 import { useCurrency } from "@/lib/currency";
@@ -195,11 +195,8 @@ export function RoomSelection({
         onChange={setRange}
         onContinue={() => setShowCal(false)}
         disabledRanges={blockedRanges}
-        pricing={{
-          pricePerNight: referenceRoomType.price_per_night,
-          cleaningFee: referenceRoomType.cleaning_fee,
-          serviceFeePct: referenceRoomType.serviceFeePct,
-        }}
+        pricing={pricingInputFor(referenceRoomType, taxRule)}
+        taxLabel={taxRule.label}
         availability={
           hasDates
             ? {
@@ -225,12 +222,7 @@ export function RoomSelection({
           const tooMany = guests > rt.max_guests;
           const breakdown = hasDates
             ? computePricing(
-                {
-                  pricePerNight: rt.price_per_night,
-                  cleaningFee: rt.cleaning_fee,
-                  serviceFeePct: rt.serviceFeePct,
-                  taxRatePct: taxRule.ratePct,
-                },
+                pricingInputFor(rt, taxRule),
                 range!.from!,
                 range!.to!
               )

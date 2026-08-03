@@ -14,18 +14,12 @@ import {
   Users2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { computePricing } from "@/lib/pricing";
+import { computePricing, type PricingInput } from "@/lib/pricing";
 import { useCurrency } from "@/lib/currency";
 import { cancellationLabel, deterministicInt } from "@/lib/listing-meta";
 import { cn } from "@/lib/utils";
 
 export type { DateRange };
-
-type Pricing = {
-  pricePerNight: number; // cents
-  cleaningFee: number; // cents
-  serviceFeePct: number;
-};
 
 type QuickSelect = {
   key: string;
@@ -95,6 +89,7 @@ export function PremiumDatePicker({
   onContinue,
   disabledRanges,
   pricing,
+  taxLabel = "Taxes",
   minNights = 1,
   availability,
   cancellationPolicy,
@@ -106,7 +101,8 @@ export function PremiumDatePicker({
   onChange: (r: DateRange | undefined) => void;
   onContinue: () => void;
   disabledRanges?: { from: Date; to: Date }[];
-  pricing: Pricing;
+  pricing: PricingInput;
+  taxLabel?: string;
   minNights?: number;
   availability?: { avail: number; total: number } | null;
   cancellationPolicy?: string | null;
@@ -392,9 +388,12 @@ export function PremiumDatePicker({
                         />
                       )}
                       <Row
-                        label="Taxes & service fee"
+                        label="Wanderstay service fee"
                         value={money(breakdown.serviceFee)}
                       />
+                      {breakdown.tax > 0 && (
+                        <Row label={taxLabel} value={money(breakdown.tax)} />
+                      )}
                       <div className="flex items-center justify-between border-t border-hairline pt-2 font-bold">
                         <span>Estimated total</span>
                         <span>{money(breakdown.total)}</span>
